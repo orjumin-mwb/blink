@@ -15,5 +15,6 @@
   "cert_expires_at": "2026-01-25T04:51:27Z",
   "cert_days_remaining": 57,
   "cert_issuer": "E8",
-  "content_type": "text/html; charset=UTF-8"
+  "content_type": "text/html; charset=UTF-8",
+  "mwb_url_checker": false
 }

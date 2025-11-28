@@ -23,6 +23,7 @@
   "cert_days_remaining": 57,
   "cert_issuer": "E8",
   "content_type": "text/html; charset=UTF-8",
+  "mwb_url_checker": false,
   "outgoing_links": [
     {
       "href": "https://my.malwarebytes.com/en/login",
