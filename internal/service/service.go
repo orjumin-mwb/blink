@@ -82,3 +82,31 @@ func (s *Service) mergeOptions(opts *checker.CheckOptions) checker.CheckOptions 
 
 	return merged
 }
+
+// DeepCheckURL performs a deep URL check with HTML analysis
+func (s *Service) DeepCheckURL(ctx context.Context, url string, opts *checker.CheckOptions) *checker.DeepCheckResult {
+	// Merge provided options with defaults
+	finalOpts := s.mergeOptions(opts)
+
+	// Create a context with timeout
+	ctx, cancel := context.WithTimeout(ctx, finalOpts.Timeout)
+	defer cancel()
+
+	// Log the deep check request
+	s.logger.Info("Deep checking URL", "url", url)
+
+	// Perform the deep check using the checker
+	result := s.checker.DeepCheckURL(ctx, url, finalOpts)
+
+	// Log the result
+	s.logger.Info("Deep check completed",
+		"url", url,
+		"ok", result.OK,
+		"status", result.Status,
+		"links_found", len(result.OutgoingLinks),
+		"technologies", len(result.Technologies),
+		"total_ms", result.TotalMs,
+	)
+
+	return result
+}

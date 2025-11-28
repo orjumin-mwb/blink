@@ -71,3 +71,63 @@ func checkHandler(svc *service.Service) http.HandlerFunc {
 		writeJSON(w, http.StatusOK, result)
 	}
 }
+
+// deepCheckRequest represents the JSON request body for /deep-check endpoint
+type deepCheckRequest struct {
+	URL             string `json:"url"`
+	FollowRedirects *bool  `json:"follow_redirects,omitempty"`
+	MaxRedirects    *int   `json:"max_redirects,omitempty"`
+	TimeoutMs       *int   `json:"timeout_ms,omitempty"`
+	// Note: Method is always GET for deep check
+}
+
+// deepCheckHandler handles POST requests to /deep-check
+// Performs a comprehensive URL check with HTML analysis
+func deepCheckHandler(svc *service.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Only accept POST requests
+		if r.Method != http.MethodPost {
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+				"error": "Method not allowed",
+			})
+			return
+		}
+
+		// Parse JSON request body
+		var req deepCheckRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{
+				"error": "Invalid JSON",
+			})
+			return
+		}
+
+		// Validate that URL is provided
+		if req.URL == "" {
+			writeJSON(w, http.StatusBadRequest, map[string]string{
+				"error": "URL is required",
+			})
+			return
+		}
+
+		// Build options from request (force GET method for deep check)
+		var opts *checker.CheckOptions
+		defaultOpts := checker.DefaultOptions()
+		opts = &defaultOpts
+		opts.Method = "GET" // Always use GET for deep check
+
+		if req.FollowRedirects != nil {
+			opts.FollowRedirects = *req.FollowRedirects
+		}
+		if req.MaxRedirects != nil {
+			opts.MaxRedirects = *req.MaxRedirects
+		}
+		// Note: Timeout is handled by service layer
+
+		// Perform the deep check through the service layer
+		result := svc.DeepCheckURL(r.Context(), req.URL, opts)
+
+		// Return the result
+		writeJSON(w, http.StatusOK, result)
+	}
+}

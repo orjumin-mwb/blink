@@ -19,6 +19,9 @@ func NewServer(addr string, logger *logging.Logger, svc *service.Service) *http.
 	// Register the check endpoint
 	mux.HandleFunc("/check", checkHandler(svc))
 
+	// Register the deep-check endpoint
+	mux.HandleFunc("/deep-check", deepCheckHandler(svc))
+
 	// Wrap the mux with logging middleware
 	handler := loggingMiddleware(logger, mux)
 

@@ -1,8 +1,10 @@
 package checker
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -61,6 +63,7 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 	currentURL := rawURL
 	redirectCount := 0
 	var lastResp *httpclient.Response
+	redirectChain := make([]RedirectHop, 0, opts.MaxRedirects)
 
 	for {
 		// Perform the request
@@ -89,6 +92,13 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 				// No location header, stop here
 				break
 			}
+
+			// Capture redirect hop
+			redirectChain = append(redirectChain, RedirectHop{
+				URL:      currentURL,
+				Status:   resp.StatusCode,
+				Location: location,
+			})
 
 			// Check redirect limit
 			redirectCount++
@@ -125,6 +135,9 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 	result.Status = lastResp.StatusCode
 	result.FinalURL = currentURL
 	result.RedirectCount = redirectCount
+	if len(redirectChain) > 0 {
+		result.RedirectChain = redirectChain
+	}
 	result.TotalMs = time.Since(startTime).Milliseconds()
 
 	// Extract HTTP version (e.g., "HTTP/2.0" -> "2")
@@ -172,6 +185,66 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 		result.ErrorType = ErrorHTTP
 		result.ErrorMessage = fmt.Sprintf("HTTP %d", result.Status)
 	}
+
+	return result
+}
+
+// DeepCheckURL performs a deep check on a URL, including HTML analysis
+func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts CheckOptions) *DeepCheckResult {
+	// Start with a basic check
+	basicResult := c.CheckURL(ctx, rawURL, opts)
+
+	// Create deep result with embedded basic result
+	result := &DeepCheckResult{
+		CheckResult: *basicResult,
+	}
+
+	// If basic check failed or non-200, return early
+	if !basicResult.OK || basicResult.Status != 200 {
+		return result
+	}
+
+	// Use FinalURL to avoid re-redirecting
+	urlToFetch := basicResult.FinalURL
+	if urlToFetch == "" {
+		urlToFetch = rawURL
+	}
+
+	// Fetch HTML body with GET request
+	startTime := time.Now()
+	resp, body, err := c.client.DoWithBody(ctx, "GET", urlToFetch, opts.UserAgent)
+	if err != nil {
+		// If we can't fetch body, return basic result
+		return result
+	}
+	defer body.Close()
+
+	// Read body with 5MB size limit
+	const maxBodySize = 5 * 1024 * 1024 // 5MB
+	bodyReader := io.LimitReader(body, maxBodySize)
+	bodyBytes, err := io.ReadAll(bodyReader)
+
+	if err != nil {
+		// If we can't read body, return basic result
+		return result
+	}
+
+	// Parse HTML
+	htmlParser, err := NewHTMLParser(urlToFetch)
+	if err == nil {
+		parseResult, err := htmlParser.Parse(bytes.NewReader(bodyBytes))
+		if err == nil && parseResult != nil {
+			result.OutgoingLinks = parseResult.Links
+			result.HTMLMetadata = parseResult.Metadata
+		}
+	}
+
+	// Detect technologies
+	techDetector := NewTechDetector()
+	result.Technologies = techDetector.Detect(resp.Header, string(bodyBytes))
+
+	// Update total time to include deep analysis
+	result.TotalMs = time.Since(startTime).Milliseconds()
 
 	return result
 }

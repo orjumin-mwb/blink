@@ -3,6 +3,7 @@ package httpclient
 import (
 	"context"
 	"crypto/tls"
+	"io"
 	"net/http"
 	"net/http/httptrace"
 	"time"
@@ -119,4 +120,76 @@ func (c *Client) Do(ctx context.Context, method, url, userAgent string) (*Respon
 	}
 
 	return response, nil
+}
+
+// DoWithBody performs an HTTP request and returns the response with body
+// The caller is responsible for closing the body
+func (c *Client) DoWithBody(ctx context.Context, method, url, userAgent string) (*Response, io.ReadCloser, error) {
+	// Create timing info to capture performance metrics
+	timings := &TimingInfo{
+		RequestStart: time.Now(),
+	}
+
+	// Create HTTP trace to capture timing events
+	trace := &httptrace.ClientTrace{
+		DNSStart: func(_ httptrace.DNSStartInfo) {
+			timings.DNSStart = time.Now()
+		},
+		DNSDone: func(_ httptrace.DNSDoneInfo) {
+			timings.DNSDone = time.Now()
+		},
+		ConnectStart: func(_, _ string) {
+			timings.ConnectStart = time.Now()
+		},
+		ConnectDone: func(_, _ string, _ error) {
+			timings.ConnectDone = time.Now()
+		},
+		TLSHandshakeStart: func() {
+			timings.TLSStart = time.Now()
+		},
+		TLSHandshakeDone: func(_ tls.ConnectionState, _ error) {
+			timings.TLSDone = time.Now()
+		},
+		GotFirstResponseByte: func() {
+			timings.GotFirstByte = time.Now()
+		},
+	}
+
+	// Create request with trace
+	req, err := http.NewRequestWithContext(
+		httptrace.WithClientTrace(ctx, trace),
+		method,
+		url,
+		nil,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Set User-Agent header
+	if userAgent != "" {
+		req.Header.Set("User-Agent", userAgent)
+	} else {
+		req.Header.Set("User-Agent", "blink-checker/1.0")
+	}
+
+	// Perform the request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Record when request completed
+	timings.RequestDone = time.Now()
+
+	// Build response object
+	response := &Response{
+		StatusCode: resp.StatusCode,
+		Proto:      resp.Proto,
+		Header:     resp.Header,
+		TLS:        resp.TLS,
+		Timings:    timings,
+	}
+
+	return response, resp.Body, nil
 }

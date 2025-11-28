@@ -1,5 +1,12 @@
 package checker
 
+// RedirectHop represents a single redirect in the chain
+type RedirectHop struct {
+	URL      string `json:"url"`      // The URL that redirected
+	Status   int    `json:"status"`   // HTTP status (301, 302, 307, 308)
+	Location string `json:"location"` // Value of Location header
+}
+
 // CheckResult holds the result of a URL check
 // Complete version for Phase 5 with TLS/certificate info
 type CheckResult struct {
@@ -11,8 +18,9 @@ type CheckResult struct {
 	ErrorMessage string `json:"error_message,omitempty"` // Human-readable error message
 
 	// Redirect info
-	FinalURL      string `json:"final_url,omitempty"` // URL after redirects
-	RedirectCount int    `json:"redirect_count"`      // Number of redirects
+	FinalURL      string         `json:"final_url,omitempty"`      // URL after redirects
+	RedirectCount int            `json:"redirect_count"`           // Number of redirects
+	RedirectChain []RedirectHop `json:"redirect_chain,omitempty"` // Detailed redirect chain
 
 	// Performance - Basic
 	TotalMs int64 `json:"total_ms"` // Total time in milliseconds
