@@ -9,7 +9,7 @@ import (
 )
 
 // NewServer creates and configures a new HTTP server
-func NewServer(addr string, logger *logging.Logger, svc *service.Service) *http.Server {
+func NewServer(addr string, logger *logging.Logger, svc *service.Service, screenshotter interface{}) *http.Server {
 	// Create a new router (multiplexer) to handle different routes
 	mux := http.NewServeMux()
 
@@ -21,6 +21,16 @@ func NewServer(addr string, logger *logging.Logger, svc *service.Service) *http.
 
 	// Register the deep-check endpoint
 	mux.HandleFunc("/deep-check", deepCheckHandler(svc))
+
+	// Register the screenshot endpoint if screenshotter is provided
+	if screenshotter != nil {
+		mux.HandleFunc("/screenshot", screenshotHandler(screenshotter))
+
+		// Serve screenshot files statically
+		// This allows frontend to access screenshots via: GET /screenshots/2024-12-01/abc123.jpg
+		fileServer := http.FileServer(http.Dir("./"))
+		mux.Handle("/screenshots/", http.StripPrefix("/", fileServer))
+	}
 
 	// Wrap the mux with logging middleware
 	handler := loggingMiddleware(logger, mux)

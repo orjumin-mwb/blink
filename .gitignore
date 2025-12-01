@@ -45,3 +45,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Screenshot storage directory
+screenshots/
+/screenshots
