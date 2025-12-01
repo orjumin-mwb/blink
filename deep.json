@@ -12,15 +12,15 @@
       "location": "https://www.malwarebytes.com/eula"
     }
   ],
-  "total_ms": 28,
-  "ttfb_ms": 606,
-  "speed_class": "ok",
+  "total_ms": 19,
+  "ttfb_ms": 13,
+  "speed_class": "fast",
   "protocol": "https",
   "http_version": "2.0",
   "tls_version": "TLS1.3",
   "cert_valid": true,
   "cert_expires_at": "2026-01-25T04:51:27Z",
-  "cert_days_remaining": 57,
+  "cert_days_remaining": 54,
   "cert_issuer": "E8",
   "content_type": "text/html; charset=UTF-8",
   "mwb_url_checker": false,
@@ -629,7 +629,7 @@
     }
   ],
   "html_metadata": {
-    "title": "Malwarebytes logo",
+    "title": "End User License Agreement (EULA)",
     "description": "Malwarebytes End-User License Agreement (EULA) outlining licenses, restrictions, ownership, updates, terms, privacy policy, limitations, and other information.",
     "open_graph": {
       "og:description": "Malwarebytes End-User License Agreement (EULA) outlining licenses, restrictions, ownership, updates, terms, privacy policy, limitations, and other information.",
@@ -652,5 +652,123 @@
       "twitter:site": "@malwarebytes",
       "twitter:title": "End User License Agreement (EULA)"
     }
+  },
+  "images": [
+    {
+      "src": "inline-svg",
+      "absolute_url": "inline-svg",
+      "alt": "Malwarebytes logo",
+      "width": 178,
+      "height": 28,
+      "format": "svg",
+      "source_type": "svg"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/mwb-labs-159px.svg",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/mwb-labs-159px.svg",
+      "alt": "Malwarebytes Labs",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/footer-logo-1.svg",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/footer-logo-1.svg",
+      "alt": "MalwareBytes-Footer-Logo",
+      "width": 1240,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/08/google_play_store_button.png?w=135",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/08/google_play_store_button.png?w=135",
+      "alt": "google play store",
+      "width": 135,
+      "height": 40,
+      "loading": "lazy",
+      "format": "png",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/08/apple_app_store_button_dark.png?w=120",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/08/apple_app_store_button_dark.png?w=120",
+      "alt": "apple store icon",
+      "width": 120,
+      "height": 40,
+      "loading": "lazy",
+      "format": "png",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/11/ThreatDown_Horizontal_Reverse-2-2.svg?w=1024",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/11/ThreatDown_Horizontal_Reverse-2-2.svg?w=1024",
+      "alt": "Threatdown powered by Malwarebytes logo",
+      "width": 156,
+      "height": 37,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2024/01/x-logo.svg?w=1240",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2024/01/x-logo.svg?w=1240",
+      "alt": "Twitter icon",
+      "width": 1240,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-facebook.svg?w=1240",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-facebook.svg?w=1240",
+      "alt": "Icon facebook",
+      "width": 1240,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-linkedin.svg?w=1240",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-linkedin.svg?w=1240",
+      "alt": "Icon Linkedin",
+      "width": 1240,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-youtube.svg?w=1240",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-youtube.svg?w=1240",
+      "alt": "Icon youtube",
+      "width": 1240,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    },
+    {
+      "src": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-instagram.svg?w=1240",
+      "absolute_url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-instagram.svg?w=1240",
+      "alt": "Icon instagram",
+      "width": 1240,
+      "loading": "lazy",
+      "format": "svg",
+      "source_type": "img"
+    }
+  ],
+  "image_analysis": {
+    "total_images": 11,
+    "lazy_loaded_count": 9,
+    "missing_sizes": [
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/mwb-labs-159px.svg",
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/footer-logo-1.svg",
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2024/01/x-logo.svg?w=1240",
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-facebook.svg?w=1240",
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-linkedin.svg?w=1240",
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-youtube.svg?w=1240",
+      "https://www.malwarebytes.com/wp-content/uploads/sites/2/2023/07/icon-instagram.svg?w=1240"
+    ],
+    "webp_usage": 0,
+    "formats": { "png": 2, "svg": 9 },
+    "accessibility_score": 100
   }
 }

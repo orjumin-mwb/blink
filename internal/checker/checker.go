@@ -211,6 +211,7 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts CheckOpt
 	// Create deep result with embedded basic result
 	result := &DeepCheckResult{
 		CheckResult: *basicResult,
+		Images:      []Image{}, // Initialize as empty slice to ensure JSON serializes as [] not null
 	}
 
 	// If basic check failed or non-200, return early
@@ -250,6 +251,13 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts CheckOpt
 		if err == nil && parseResult != nil {
 			result.OutgoingLinks = parseResult.Links
 			result.HTMLMetadata = parseResult.Metadata
+			result.Images = parseResult.Images
+
+			// Analyze images if any were found
+			if len(parseResult.Images) > 0 {
+				analyzer := NewImageAnalyzer(parseResult.Images)
+				result.ImageAnalysis = analyzer.Analyze()
+			}
 		}
 	}
 
