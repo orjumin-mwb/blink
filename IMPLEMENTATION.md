@@ -138,7 +138,8 @@ cmd/linkchecker-api/main.go          # Modified: initialize HTTP client
   "final_url": "https://www.google.com",
   "redirect_count": 0,
   "total_ms": 245,
-  "protocol": "https"
+  "protocol": "https",
+  "mwb_url_checker": false
 }
 ```
 
@@ -223,7 +224,8 @@ cmd/linkchecker-api/main.go          # Modified: initialize service
   "ttfb_ms": 156,
   "speed_class": "ok",
   "protocol": "https",
-  "http_version": "2"
+  "http_version": "2",
+  "mwb_url_checker": false
 }
 ```
 
@@ -322,7 +324,8 @@ internal/httpclient/client.go        # Modified: capture TLS state
   "cert_expiring_soon": false,
   "cert_issuer": "DigiCert Inc",
   "content_type": "text/html; charset=utf-8",
-  "size_bytes": 123456
+  "size_bytes": 123456,
+  "mwb_url_checker": false
 }
 ```
 

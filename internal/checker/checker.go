@@ -11,17 +11,20 @@ import (
 	"time"
 
 	"github.com/olegrjumin/blink/internal/httpclient"
+	"github.com/olegrjumin/blink/internal/mwbapi"
 )
 
 // Checker performs URL checks
 type Checker struct {
-	client *httpclient.Client
+	client    *httpclient.Client
+	mwbClient *mwbapi.Client
 }
 
 // New creates a new Checker instance
-func New(client *httpclient.Client) *Checker {
+func New(client *httpclient.Client, mwbClient *mwbapi.Client) *Checker {
 	return &Checker{
-		client: client,
+		client:    client,
+		mwbClient: mwbClient,
 	}
 }
 
@@ -174,6 +177,17 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 		if size, err := strconv.ParseInt(contentLength, 10, 64); err == nil {
 			result.SizeBytes = size
 		}
+	}
+
+	// Call MWB API to check if URL is malicious
+	// Use the original URL for the MWB check, not the final URL after redirects
+	isMalicious, err := c.mwbClient.CheckURL(ctx, rawURL)
+	if err != nil {
+		// If MWB API fails, log but don't fail the whole check
+		// Set to false as fallback
+		result.MWBURLChecker = false
+	} else {
+		result.MWBURLChecker = isMalicious
 	}
 
 	// Determine if the link is "OK"

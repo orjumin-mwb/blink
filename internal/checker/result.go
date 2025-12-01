@@ -47,4 +47,7 @@ type CheckResult struct {
 	// Response metadata (Phase 5)
 	ContentType string `json:"content_type,omitempty"` // Content-Type header
 	SizeBytes   int64  `json:"size_bytes,omitempty"`   // Content-Length header
+
+	// MWB specific field
+	MWBURLChecker bool `json:"mwb_url_checker"` // MWB URL checker flag
 }

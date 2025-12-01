@@ -83,6 +83,7 @@ Checks a URL and returns detailed results including:
 - Redirect chain with individual status codes
 - TLS certificate details (if HTTPS)
 - Error classification
+- MWB malicious URL detection result
 
 Request body:
 ```json

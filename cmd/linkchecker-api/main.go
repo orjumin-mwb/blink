@@ -13,6 +13,7 @@ import (
 	"github.com/olegrjumin/blink/internal/httpapi"
 	"github.com/olegrjumin/blink/internal/httpclient"
 	"github.com/olegrjumin/blink/internal/logging"
+	"github.com/olegrjumin/blink/internal/mwbapi"
 	"github.com/olegrjumin/blink/internal/service"
 )
 
@@ -26,8 +27,11 @@ func main() {
 	// Initialize HTTP client for making URL checks
 	httpClient := httpclient.NewClient()
 
-	// Initialize checker with the HTTP client
-	chk := checker.New(httpClient)
+	// Initialize MWB API client
+	mwbClient := mwbapi.New()
+
+	// Initialize checker with the HTTP client and MWB API client
+	chk := checker.New(httpClient, mwbClient)
 
 	// Create service options from config
 	opts := checker.CheckOptions{
