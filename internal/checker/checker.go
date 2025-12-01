@@ -12,19 +12,22 @@ import (
 
 	"github.com/olegrjumin/blink/internal/httpclient"
 	"github.com/olegrjumin/blink/internal/mwbapi"
+	"github.com/olegrjumin/blink/internal/scamguardapi"
 )
 
 // Checker performs URL checks
 type Checker struct {
-	client    *httpclient.Client
-	mwbClient *mwbapi.Client
+	client          *httpclient.Client
+	mwbClient       *mwbapi.Client
+	scamGuardClient *scamguardapi.Client
 }
 
 // New creates a new Checker instance
-func New(client *httpclient.Client, mwbClient *mwbapi.Client) *Checker {
+func New(client *httpclient.Client, mwbClient *mwbapi.Client, scamGuardClient *scamguardapi.Client) *Checker {
 	return &Checker{
-		client:    client,
-		mwbClient: mwbClient,
+		client:          client,
+		mwbClient:       mwbClient,
+		scamGuardClient: scamGuardClient,
 	}
 }
 

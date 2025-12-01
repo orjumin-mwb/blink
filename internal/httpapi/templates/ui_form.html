@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blink URL Checker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
     <style>
         @keyframes pulse-slow {
             0%, 100% { opacity: 1; }
@@ -31,6 +32,78 @@
 
         .progress-bar {
             transition: width 0.5s ease-in-out;
+        }
+
+        /* Markdown styling for ScamGuard analysis */
+        .markdown-content {
+            line-height: 1.6;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-weight: 600;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content h1 {
+            font-size: 1.5em;
+        }
+
+        .markdown-content h2 {
+            font-size: 1.3em;
+        }
+
+        .markdown-content h3 {
+            font-size: 1.1em;
+        }
+
+        .markdown-content p {
+            margin-bottom: 0.75em;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 0.75em;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.25em;
+        }
+
+        .markdown-content strong {
+            font-weight: 600;
+        }
+
+        .markdown-content em {
+            font-style: italic;
+        }
+
+        .markdown-content code {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .markdown-content pre {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 0.75em;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 0.75em;
+        }
+
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 3px solid #d1d5db;
+            padding-left: 1em;
+            margin-left: 0;
+            color: #6b7280;
         }
     </style>
 </head>
@@ -77,17 +150,24 @@
             <div id="progress-container" class="mt-6 hidden">
                 <div class="flex items-center justify-between mb-2">
                     <div class="text-sm font-medium text-gray-700">Progress</div>
-                    <div class="flex space-x-2">
+                    <div class="flex flex-wrap gap-2">
                         <span id="stage-dns" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
                         <span id="stage-tcp" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
                         <span id="stage-tls" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TLS</span>
                         <span id="stage-response" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Response</span>
+                        <span id="stage-scamguard" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">AI Analysis</span>
                     </div>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                     <div id="progress-bar" class="progress-bar bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
                 </div>
                 <div id="progress-message" class="text-sm text-gray-600 mt-2"></div>
+            </div>
+
+            <!-- ScamGuard Analysis Stream (outside progress container to persist after completion) -->
+            <div id="scamguard-stream" class="hidden mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <div class="text-xs font-semibold text-blue-800 mb-2">AI Security Analysis</div>
+                <div id="scamguard-text" class="text-sm text-gray-700 markdown-content"></div>
             </div>
         </div>
 
@@ -102,6 +182,12 @@
 
     <script>
         let eventSource = null;
+        let scamGuardTextBuffer = ''; // Buffer for accumulating ScamGuard text
+
+        // Check if marked.js is loaded
+        if (typeof marked === 'undefined') {
+            console.error('marked.js library is not loaded!');
+        }
 
         // Handle form submission
         document.getElementById('check-form').addEventListener('submit', function(e) {
@@ -122,10 +208,15 @@
             document.getElementById('loading').classList.add('flex');
 
             // Reset all stages
-            ['dns', 'tcp', 'tls', 'response'].forEach(stage => {
+            ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
                 const el = document.getElementById('stage-' + stage);
                 el.classList.remove('stage-complete', 'stage-active', 'stage-error');
             });
+
+            // Reset and hide ScamGuard stream
+            document.getElementById('scamguard-stream').classList.add('hidden');
+            document.getElementById('scamguard-text').innerHTML = '';
+            scamGuardTextBuffer = '';
 
             // Close existing connection
             if (eventSource) {
@@ -173,6 +264,82 @@
             eventSource.addEventListener('redirect', function(e) {
                 const data = JSON.parse(e.data);
                 document.getElementById('progress-message').textContent = 'Following redirect (hop ' + data.data.hop + ')...';
+            });
+
+            // ScamGuard event handlers
+            eventSource.addEventListener('scamguard.started', function(e) {
+                document.getElementById('stage-scamguard').classList.add('stage-active');
+                document.getElementById('scamguard-stream').classList.remove('hidden');
+                scamGuardTextBuffer = 'Starting AI analysis...';
+                const textEl = document.getElementById('scamguard-text');
+                textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
+            });
+
+            eventSource.addEventListener('scamguard.scanning', function(e) {
+                scamGuardTextBuffer = 'Analyzing URL for security threats...';
+                const textEl = document.getElementById('scamguard-text');
+                textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
+            });
+
+            eventSource.addEventListener('scamguard.verdict', function(e) {
+                const data = JSON.parse(e.data);
+                if (data.data && data.data.verdict) {
+                    const verdict = data.data.verdict;
+                    let verdictText = '';
+                    switch(verdict) {
+                        case 'safe':
+                            verdictText = '**✓ Verdict: Safe**';
+                            break;
+                        case 'malicious':
+                            verdictText = '**⚠ Verdict: Malicious**';
+                            break;
+                        case 'suspicious':
+                            verdictText = '**⚠ Verdict: Suspicious**';
+                            break;
+                        default:
+                            verdictText = '**Verdict: ' + verdict + '**';
+                    }
+                    scamGuardTextBuffer = verdictText + '\n\n' + scamGuardTextBuffer;
+                    const textEl = document.getElementById('scamguard-text');
+                    textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer.replace(/\n/g, '<br>');
+                }
+            });
+
+            eventSource.addEventListener('scamguard.text', function(e) {
+                const data = JSON.parse(e.data);
+                if (data.data && data.data.text) {
+                    // Append text delta to the buffer
+                    scamGuardTextBuffer += data.data.text;
+
+                    // Render markdown
+                    const textEl = document.getElementById('scamguard-text');
+                    if (typeof marked !== 'undefined') {
+                        textEl.innerHTML = marked.parse(scamGuardTextBuffer);
+                    } else {
+                        // Fallback: convert newlines to <br> tags
+                        textEl.innerHTML = scamGuardTextBuffer.replace(/\n/g, '<br>');
+                    }
+
+                    // Auto-scroll to bottom
+                    const streamEl = document.getElementById('scamguard-stream');
+                    streamEl.scrollTop = streamEl.scrollHeight;
+                }
+            });
+
+            eventSource.addEventListener('scamguard.completed', function(e) {
+                document.getElementById('stage-scamguard').classList.remove('stage-active');
+                document.getElementById('stage-scamguard').classList.add('stage-complete');
+            });
+
+            eventSource.addEventListener('scamguard.error', function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('stage-scamguard').classList.remove('stage-active');
+                document.getElementById('stage-scamguard').classList.add('stage-error');
+
+                const errorMsg = data.data && data.data.error ? data.data.error : 'Analysis failed';
+                scamGuardTextBuffer = '⚠ ' + errorMsg;
+                const textEl = document.getElementById('scamguard-text');
+                textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
             });
 
             eventSource.addEventListener('malicious', function(e) {

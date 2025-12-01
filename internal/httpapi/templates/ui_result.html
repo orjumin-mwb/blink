@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
+
 <div class="bg-white rounded-lg shadow-md p-6 mb-4 animate-fadeIn">
     <!-- Header with URL and Status -->
     <div class="flex items-start justify-between mb-4">
@@ -199,5 +201,77 @@
 
 .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
+}
+
+/* Markdown styling for ScamGuard analysis */
+.markdown-content {
+    line-height: 1.6;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    font-weight: 600;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-content h1 {
+    font-size: 1.5em;
+}
+
+.markdown-content h2 {
+    font-size: 1.3em;
+}
+
+.markdown-content h3 {
+    font-size: 1.1em;
+}
+
+.markdown-content p {
+    margin-bottom: 0.75em;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin-left: 1.5em;
+    margin-bottom: 0.75em;
+}
+
+.markdown-content li {
+    margin-bottom: 0.25em;
+}
+
+.markdown-content strong {
+    font-weight: 600;
+}
+
+.markdown-content em {
+    font-style: italic;
+}
+
+.markdown-content code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.markdown-content pre {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.75em;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-bottom: 0.75em;
+}
+
+.markdown-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-content blockquote {
+    border-left: 3px solid #d1d5db;
+    padding-left: 1em;
+    margin-left: 0;
+    color: #6b7280;
 }
 </style>

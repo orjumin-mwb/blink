@@ -7,6 +7,17 @@ type RedirectHop struct {
 	Location string `json:"location"` // Value of Location header
 }
 
+// ScamGuardResult holds the result of a ScamGuard scan
+type ScamGuardResult struct {
+	Verdict        string `json:"verdict"`                   // "malicious" | "suspicious" | "safe" | "unknown"
+	Analysis       string `json:"analysis,omitempty"`        // Natural language explanation from AI
+	DestinationURL string `json:"destination_url,omitempty"` // Final URL after redirects (from ScamGuard)
+	Reachable      bool   `json:"reachable"`                 // Whether URL was reachable
+	ResponseID     string `json:"response_id,omitempty"`     // ScamGuard response ID for tracing
+	ThreadID       string `json:"thread_id,omitempty"`       // ScamGuard thread ID for tracing
+	Error          string `json:"error,omitempty"`           // If scan failed
+}
+
 // CheckResult holds the result of a URL check
 // Complete version for Phase 5 with TLS/certificate info
 type CheckResult struct {
@@ -50,4 +61,7 @@ type CheckResult struct {
 
 	// MWB specific field
 	MWBURLChecker bool `json:"mwb_url_checker"` // MWB URL checker flag
+
+	// ScamGuard field
+	ScamGuard *ScamGuardResult `json:"scamguard,omitempty"` // ScamGuard analysis result (nil if not enabled or failed)
 }

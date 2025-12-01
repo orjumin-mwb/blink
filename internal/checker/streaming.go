@@ -2,6 +2,7 @@ package checker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/olegrjumin/blink/internal/httpclient"
+	"github.com/olegrjumin/blink/internal/scamguardapi"
 )
 
 // StreamEvent represents a progressive event during URL checking
@@ -67,6 +69,80 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 			sendEvent(ctx, events, "malicious", result.ErrorMessage, result)
 			return
 		}
+	}
+
+	// Launch ScamGuard check in parallel (only if MWB didn't block it)
+	var scamGuardResult *ScamGuardResult
+	scamGuardDone := make(chan struct{})
+
+	if c.scamGuardClient != nil {
+		go func() {
+			defer close(scamGuardDone)
+
+			// Create sub-channel for ScamGuard events
+			sgEvents := make(chan scamguardapi.StreamEvent, 10)
+
+			// Forward ScamGuard events to main event stream
+			go func() {
+				for sgEvt := range sgEvents {
+					// Transform ScamGuard events to our event format
+					switch sgEvt.Type {
+					case "response.created":
+						sendEvent(ctx, events, "scamguard.started", "ScamGuard analysis started", map[string]string{"url": rawURL})
+
+					case "response.scan_url_tool.in_progress":
+						sendEvent(ctx, events, "scamguard.scanning", "Scanning URL with ScamGuard", nil)
+
+					case "response.output_item.done", "response.scan_url_tool.completed":
+						// Extract verdict
+						var scanData struct {
+							Item struct {
+								Result struct {
+									Verdict string `json:"verdict"`
+								} `json:"result"`
+							} `json:"item"`
+						}
+						if err := json.Unmarshal(sgEvt.Data, &scanData); err == nil {
+							sendEvent(ctx, events, "scamguard.verdict", "Scan verdict received", map[string]string{
+								"verdict": scanData.Item.Result.Verdict,
+							})
+						}
+
+					case "response.text.delta":
+						// Stream analysis text chunks
+						var deltaData struct {
+							Delta string `json:"delta"`
+						}
+						if err := json.Unmarshal(sgEvt.Data, &deltaData); err == nil {
+							sendEvent(ctx, events, "scamguard.text", "Analysis text", map[string]string{
+								"text": deltaData.Delta,
+							})
+						}
+
+					case "response.completed":
+						sendEvent(ctx, events, "scamguard.completed", "ScamGuard analysis complete", nil)
+					}
+				}
+			}()
+
+			// Call ScamGuard API
+			sgResult, err := c.scamGuardClient.ScanURLStreaming(ctx, rawURL, sgEvents)
+			if err != nil {
+				scamGuardResult = &ScamGuardResult{
+					Error: err.Error(),
+				}
+				sendEvent(ctx, events, "scamguard.error", "ScamGuard scan failed", map[string]string{"error": err.Error()})
+			} else if sgResult != nil {
+				scamGuardResult = &ScamGuardResult{
+					Verdict:        sgResult.Verdict,
+					Analysis:       sgResult.Analysis,
+					DestinationURL: sgResult.DestinationURL,
+					Reachable:      sgResult.Reachable,
+					ResponseID:     sgResult.ResponseID,
+					ThreadID:       sgResult.ThreadID,
+				}
+			}
+		}()
 	}
 
 	// Follow redirects manually and emit events between hops
@@ -208,6 +284,31 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 		if size, err := strconv.ParseInt(contentLength, 10, 64); err == nil {
 			result.SizeBytes = size
 		}
+	}
+
+	// Wait for ScamGuard with timeout (if running)
+	if c.scamGuardClient != nil {
+		select {
+		case <-scamGuardDone:
+			// ScamGuard completed normally
+		case <-ctx.Done():
+			// Request cancelled
+			if scamGuardResult == nil {
+				scamGuardResult = &ScamGuardResult{
+					Error: "Request cancelled",
+				}
+			}
+		case <-time.After(10 * time.Second):
+			// ScamGuard timeout - continue without it
+			if scamGuardResult == nil {
+				scamGuardResult = &ScamGuardResult{
+					Error: "Scan timeout",
+				}
+			}
+		}
+
+		// Attach ScamGuard result to main result
+		result.ScamGuard = scamGuardResult
 	}
 
 	// Determine if OK

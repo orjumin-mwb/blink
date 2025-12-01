@@ -14,6 +14,7 @@ import (
 	"github.com/olegrjumin/blink/internal/httpclient"
 	"github.com/olegrjumin/blink/internal/logging"
 	"github.com/olegrjumin/blink/internal/mwbapi"
+	"github.com/olegrjumin/blink/internal/scamguardapi"
 	"github.com/olegrjumin/blink/internal/screenshot"
 	"github.com/olegrjumin/blink/internal/service"
 )
@@ -31,8 +32,17 @@ func main() {
 	// Initialize MWB API client
 	mwbClient := mwbapi.New()
 
-	// Initialize checker with the HTTP client and MWB API client
-	chk := checker.New(httpClient, mwbClient)
+	// Initialize ScamGuard API client (conditionally)
+	var scamGuardClient *scamguardapi.Client
+	if cfg.ScamGuardEnabled {
+		scamGuardClient = scamguardapi.New(cfg.ScamGuardBaseURL, cfg.ScamGuardUserAgent)
+		logger.Info("ScamGuard integration enabled", "baseURL", cfg.ScamGuardBaseURL)
+	} else {
+		logger.Info("ScamGuard integration disabled")
+	}
+
+	// Initialize checker with the HTTP client, MWB API client, and ScamGuard client
+	chk := checker.New(httpClient, mwbClient, scamGuardClient)
 
 	// Create service options from config
 	opts := checker.CheckOptions{
