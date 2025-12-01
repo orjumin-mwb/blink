@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blink URL Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress-stage {
+            transition: all 0.3s ease;
+        }
+
+        .stage-active {
+            animation: pulse-slow 2s ease-in-out infinite;
+        }
+
+        .stage-complete {
+            background-color: #10b981 !important;
+            color: white !important;
+        }
+
+        .stage-error {
+            background-color: #ef4444 !important;
+            color: white !important;
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Blink URL Checker</h1>
+            <p class="text-gray-600">Check URL health, redirects, TLS certificates, and performance</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <form id="check-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        URL to Check
+                    </label>
+                    <input type="url"
+                           name="url"
+                           placeholder="https://example.com"
+                           required
+                           autofocus
+                           class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <button type="submit"
+                            class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition font-medium">
+                        Check URL
+                    </button>
+
+                    <div id="loading" class="hidden items-center text-gray-600">
+                        <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Checking...
+                    </div>
+                </div>
+            </form>
+
+            <!-- Progress Indicators -->
+            <div id="progress-container" class="mt-6 hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-sm font-medium text-gray-700">Progress</div>
+                    <div class="flex space-x-2">
+                        <span id="stage-dns" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
+                        <span id="stage-tcp" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
+                        <span id="stage-tls" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TLS</span>
+                        <span id="stage-response" class="progress-stage px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Response</span>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="progress-bar bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+                <div id="progress-message" class="text-sm text-gray-600 mt-2"></div>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results"></div>
+
+        <!-- Footer -->
+        <div class="text-center text-gray-500 text-sm mt-8">
+            <p>Powered by Blink Link Checker API</p>
+        </div>
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        // Handle form submission
+        document.getElementById('check-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const urlInput = this.querySelector('input[name="url"]');
+            const url = urlInput.value;
+
+            if (!url) return;
+
+            // Clear previous results
+            document.getElementById('results').innerHTML = '';
+
+            // Show progress and loading
+            document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('progress-bar').style.width = '10%';
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading').classList.add('flex');
+
+            // Reset all stages
+            ['dns', 'tcp', 'tls', 'response'].forEach(stage => {
+                const el = document.getElementById('stage-' + stage);
+                el.classList.remove('stage-complete', 'stage-active', 'stage-error');
+            });
+
+            // Close existing connection
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            // Create EventSource for SSE
+            const params = new URLSearchParams({ url: url });
+            eventSource = new EventSource('/ui/stream?' + params.toString());
+
+            // Handle different event types
+            eventSource.addEventListener('start', function(e) {
+                document.getElementById('progress-message').textContent = 'Starting check...';
+                document.getElementById('progress-bar').style.width = '10%';
+            });
+
+            eventSource.addEventListener('dns', function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('stage-dns').classList.add('stage-complete');
+                document.getElementById('progress-message').textContent = 'DNS resolved (' + data.data.dns_ms + 'ms)';
+                document.getElementById('progress-bar').style.width = '30%';
+            });
+
+            eventSource.addEventListener('tcp', function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('stage-tcp').classList.add('stage-complete');
+                document.getElementById('progress-message').textContent = 'Connected (' + data.data.connect_ms + 'ms)';
+                document.getElementById('progress-bar').style.width = '50%';
+            });
+
+            eventSource.addEventListener('tls', function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('stage-tls').classList.add('stage-complete');
+                document.getElementById('progress-message').textContent = 'TLS handshake complete (' + data.data.tls_ms + 'ms)';
+                document.getElementById('progress-bar').style.width = '70%';
+            });
+
+            eventSource.addEventListener('response', function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('stage-response').classList.add('stage-complete');
+                document.getElementById('progress-message').textContent = 'Got response (status: ' + data.data.status + ')';
+                document.getElementById('progress-bar').style.width = '90%';
+            });
+
+            eventSource.addEventListener('redirect', function(e) {
+                const data = JSON.parse(e.data);
+                document.getElementById('progress-message').textContent = 'Following redirect (hop ' + data.data.hop + ')...';
+            });
+
+            eventSource.addEventListener('malicious', function(e) {
+                // The data contains JSON-encoded HTML - parse it
+                try {
+                    const html = JSON.parse(e.data);
+                    document.getElementById('results').innerHTML = html;
+                } catch (err) {
+                    console.error('Failed to parse malicious event:', err);
+                    document.getElementById('results').innerHTML = e.data; // Fallback to raw data
+                }
+
+                // Update UI to show malicious warning
+                document.getElementById('progress-bar').style.width = '100%';
+                document.getElementById('progress-bar').style.backgroundColor = '#ef4444';
+                document.getElementById('progress-message').textContent = 'URL flagged as malicious!';
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').classList.remove('flex');
+
+                // Hide progress after showing malicious warning
+                setTimeout(function() {
+                    document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('progress-bar').style.backgroundColor = '';
+                }, 3000);
+
+                // Close the connection
+                eventSource.close();
+                eventSource = null;
+            });
+
+            eventSource.addEventListener('complete', function(e) {
+                // The data contains JSON-encoded HTML - parse it
+                try {
+                    const html = JSON.parse(e.data);
+                    document.getElementById('results').innerHTML = html;
+                } catch (err) {
+                    console.error('Failed to parse complete event:', err);
+                    document.getElementById('results').innerHTML = e.data; // Fallback to raw data
+                }
+
+                document.getElementById('progress-bar').style.width = '100%';
+                document.getElementById('progress-message').textContent = 'Check complete!';
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').classList.remove('flex');
+
+                // Hide progress after showing complete
+                setTimeout(function() {
+                    document.getElementById('progress-container').classList.add('hidden');
+                }, 2000);
+
+                // Close the connection
+                eventSource.close();
+                eventSource = null;
+            });
+
+            eventSource.addEventListener('error', function(e) {
+                try {
+                    // Try to parse as JSON-encoded HTML first
+                    const html = JSON.parse(e.data);
+                    document.getElementById('results').innerHTML = html;
+                    document.getElementById('progress-message').textContent = 'Check failed';
+                } catch (err) {
+                    // If that fails, try parsing as error JSON object
+                    try {
+                        const errorData = JSON.parse(e.data);
+                        document.getElementById('progress-message').textContent = 'Error: ' + (errorData.message || 'Unknown error');
+                    } catch (err2) {
+                        document.getElementById('progress-message').textContent = 'Check failed';
+                    }
+                }
+
+                document.getElementById('progress-bar').style.backgroundColor = '#ef4444';
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').classList.remove('flex');
+
+                // Hide progress after showing error
+                setTimeout(function() {
+                    document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('progress-bar').style.backgroundColor = '';
+                }, 3000);
+
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+            });
+
+            // Handle connection errors
+            eventSource.onerror = function(e) {
+                console.error('EventSource connection error');
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').classList.remove('flex');
+
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+            };
+        });
+    </script>
+</body>
+</html>

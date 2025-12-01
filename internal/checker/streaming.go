@@ -1,39 +1,29 @@
 package checker
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/olegrjumin/blink/internal/httpclient"
-	"github.com/olegrjumin/blink/internal/mwbapi"
 )
 
-// Checker performs URL checks
-type Checker struct {
-	client    *httpclient.Client
-	mwbClient *mwbapi.Client
+// StreamEvent represents a progressive event during URL checking
+type StreamEvent struct {
+	Stage   string      `json:"stage"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
 
-// New creates a new Checker instance
-func New(client *httpclient.Client, mwbClient *mwbapi.Client) *Checker {
-	return &Checker{
-		client:    client,
-		mwbClient: mwbClient,
-	}
-}
-
-// CheckURL performs a check on a single URL with the given options
-// Returns a CheckResult with status, timing, and error information
-func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions) *CheckResult {
+// CheckURLStreaming performs a check and emits real-time events to the provided channel
+// This method handles its own event sending and closes when done
+func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts CheckOptions, events chan<- StreamEvent) {
 	startTime := time.Now()
 
-	// Initialize result with the original URL
+	// Initialize result
 	result := &CheckResult{
 		URL:           rawURL,
 		OK:            false,
@@ -42,24 +32,24 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 		RedirectCount: 0,
 	}
 
-	// Step 1: Validate and parse the URL
+	// Validate URL
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
 		result.ErrorType = ErrorInvalidURL
 		result.ErrorMessage = "invalid URL format"
 		result.TotalMs = time.Since(startTime).Milliseconds()
-		return result
+		sendEvent(ctx, events, "error", result.ErrorMessage, result)
+		return
 	}
 
-	// Ensure scheme is http or https
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
 		result.ErrorType = ErrorInvalidURL
 		result.ErrorMessage = "URL must use http or https"
 		result.TotalMs = time.Since(startTime).Milliseconds()
-		return result
+		sendEvent(ctx, events, "error", result.ErrorMessage, result)
+		return
 	}
 
-	// Set protocol
 	result.Protocol = parsedURL.Scheme
 
 	// Check MWB reputation FIRST - fail fast if malicious
@@ -74,83 +64,115 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 			result.ErrorType = ErrorHTTP
 			result.ErrorMessage = "URL flagged as malicious by Malwarebytes URL Checker"
 			result.TotalMs = time.Since(startTime).Milliseconds()
-			return result
+			sendEvent(ctx, events, "malicious", result.ErrorMessage, result)
+			return
 		}
 	}
 
-	// Step 2: Perform HTTP request with redirect handling
+	// Follow redirects manually and emit events between hops
 	currentURL := rawURL
 	redirectCount := 0
 	var lastResp *httpclient.Response
 	redirectChain := make([]RedirectHop, 0, opts.MaxRedirects)
 
 	for {
-		// Perform the request
+		// Perform request
 		resp, err := c.client.Do(ctx, opts.Method, currentURL, opts.UserAgent)
 		if err != nil {
-			// If HEAD failed with 405 Method Not Allowed, try GET
+			// Try GET if HEAD failed with 405
 			if opts.Method == "HEAD" && strings.Contains(err.Error(), "405") {
 				resp, err = c.client.Do(ctx, "GET", currentURL, opts.UserAgent)
 			}
 
-			// If still error, classify and return
 			if err != nil {
 				result.ErrorType, result.ErrorMessage = ClassifyError(err)
 				result.TotalMs = time.Since(startTime).Milliseconds()
-				return result
+				sendEvent(ctx, events, "error", result.ErrorMessage, result)
+				return
 			}
 		}
 
 		lastResp = resp
 
-		// Check if it's a redirect (3xx)
+		// Emit timing events immediately after request completes
+		if resp.Timings != nil {
+			timings := ExtractTimings(resp.Timings)
+
+			if timings.DNSMs > 0 {
+				sendEvent(ctx, events, "dns", "DNS resolved", map[string]interface{}{
+					"dns_ms": timings.DNSMs,
+				})
+			}
+
+			if timings.ConnectMs > 0 {
+				sendEvent(ctx, events, "tcp", "Connected", map[string]interface{}{
+					"connect_ms": timings.ConnectMs,
+				})
+			}
+
+			if timings.TLSMs > 0 {
+				sendEvent(ctx, events, "tls", "TLS handshake complete", map[string]interface{}{
+					"tls_ms": timings.TLSMs,
+				})
+			}
+
+			if timings.TTFBMs > 0 {
+				sendEvent(ctx, events, "response", "Got response", map[string]interface{}{
+					"ttfb_ms": timings.TTFBMs,
+					"status":  resp.StatusCode,
+				})
+			}
+		}
+
+		// Check if it's a redirect
 		if opts.FollowRedirects && resp.StatusCode >= 300 && resp.StatusCode < 400 {
-			// Get Location header
 			location := resp.Header.Get("Location")
 			if location == "" {
-				// No location header, stop here
 				break
 			}
 
-			// Capture redirect hop
+			// Emit redirect event
 			redirectChain = append(redirectChain, RedirectHop{
 				URL:      currentURL,
 				Status:   resp.StatusCode,
 				Location: location,
 			})
 
-			// Check redirect limit
+			sendEvent(ctx, events, "redirect", "Following redirect...", map[string]interface{}{
+				"hop":      redirectCount + 1,
+				"status":   resp.StatusCode,
+				"location": location,
+			})
+
 			redirectCount++
 			if redirectCount > opts.MaxRedirects {
 				result.Status = resp.StatusCode
 				result.ErrorType = ErrorHTTP
 				result.ErrorMessage = fmt.Sprintf("too many redirects (max: %d)", opts.MaxRedirects)
 				result.TotalMs = time.Since(startTime).Milliseconds()
-				return result
+				sendEvent(ctx, events, "error", result.ErrorMessage, result)
+				return
 			}
 
-			// Parse the location (might be relative)
+			// Parse location
 			locationURL, err := url.Parse(location)
 			if err != nil {
 				result.ErrorType = ErrorInvalidURL
 				result.ErrorMessage = "invalid redirect location"
 				result.TotalMs = time.Since(startTime).Milliseconds()
-				return result
+				sendEvent(ctx, events, "error", result.ErrorMessage, result)
+				return
 			}
 
-			// If relative, resolve against current URL
 			currentParsed, _ := url.Parse(currentURL)
 			currentURL = currentParsed.ResolveReference(locationURL).String()
-
-			// Continue to follow redirect
 			continue
 		}
 
-		// Not a redirect or not following redirects, stop here
 		break
 	}
 
-	// Step 3: Process the final response
+	// Build final result
 	result.Status = lastResp.StatusCode
 	result.FinalURL = currentURL
 	result.RedirectCount = redirectCount
@@ -159,22 +181,17 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 	}
 	result.TotalMs = time.Since(startTime).Milliseconds()
 
-	// Extract HTTP version (e.g., "HTTP/2.0" -> "2")
 	if strings.HasPrefix(lastResp.Proto, "HTTP/") {
 		result.HTTPVersion = strings.TrimPrefix(lastResp.Proto, "HTTP/")
 	}
 
-	// Extract detailed timings
 	timings := ExtractTimings(lastResp.Timings)
 	result.DNSMs = timings.DNSMs
 	result.ConnectMs = timings.ConnectMs
 	result.TLSMs = timings.TLSMs
 	result.TTFBMs = timings.TTFBMs
-
-	// Classify speed
 	result.SpeedClass = ClassifySpeed(result.TotalMs)
 
-	// Extract TLS/certificate information (Phase 5)
 	if tlsInfo := ExtractTLSInfo(lastResp.TLS); tlsInfo != nil {
 		result.TLSVersion = tlsInfo.TLSVersion
 		result.CertValid = tlsInfo.CertValid
@@ -184,104 +201,34 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 		result.CertIssuer = tlsInfo.CertIssuer
 	}
 
-	// Extract response metadata (Phase 5)
 	if contentType := lastResp.Header.Get("Content-Type"); contentType != "" {
 		result.ContentType = contentType
 	}
 	if contentLength := lastResp.Header.Get("Content-Length"); contentLength != "" {
-		// Parse Content-Length as int64
 		if size, err := strconv.ParseInt(contentLength, 10, 64); err == nil {
 			result.SizeBytes = size
 		}
 	}
 
-	// Determine if the link is "OK"
-	// 2xx and 3xx status codes are considered successful
+	// Determine if OK
 	if result.Status >= 200 && result.Status < 400 {
 		result.OK = true
+		sendEvent(ctx, events, "complete", "Check complete", result)
 	} else {
-		// For 4xx and 5xx errors, classify as http_error
 		result.ErrorType = ErrorHTTP
 		result.ErrorMessage = fmt.Sprintf("HTTP %d", result.Status)
+		sendEvent(ctx, events, "error", result.ErrorMessage, result)
 	}
-
-	return result
 }
 
-// DeepCheckURL performs a deep check on a URL, including HTML analysis
-func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts CheckOptions) *DeepCheckResult {
-	// Start with a basic check
-	basicResult := c.CheckURL(ctx, rawURL, opts)
-
-	// Create deep result with embedded basic result
-	result := &DeepCheckResult{
-		CheckResult: *basicResult,
-		Images:      []Image{}, // Initialize as empty slice to ensure JSON serializes as [] not null
+// sendEvent is a helper to safely send events with context cancellation support
+func sendEvent(ctx context.Context, events chan<- StreamEvent, stage, message string, data interface{}) {
+	select {
+	case events <- StreamEvent{
+		Stage:   stage,
+		Message: message,
+		Data:    data,
+	}:
+	case <-ctx.Done():
 	}
-
-	// If basic check failed or non-200, return early
-	if !basicResult.OK || basicResult.Status != 200 {
-		return result
-	}
-
-	// Use FinalURL to avoid re-redirecting
-	urlToFetch := basicResult.FinalURL
-	if urlToFetch == "" {
-		urlToFetch = rawURL
-	}
-
-	// Fetch HTML body with GET request
-	startTime := time.Now()
-	resp, body, err := c.client.DoWithBody(ctx, "GET", urlToFetch, opts.UserAgent)
-	if err != nil {
-		// If we can't fetch body, return basic result
-		return result
-	}
-	defer body.Close()
-
-	// Read body with 5MB size limit
-	const maxBodySize = 5 * 1024 * 1024 // 5MB
-	bodyReader := io.LimitReader(body, maxBodySize)
-	bodyBytes, err := io.ReadAll(bodyReader)
-
-	if err != nil {
-		// If we can't read body, return basic result
-		return result
-	}
-
-	// Parse HTML
-	htmlParser, err := NewHTMLParser(urlToFetch)
-	if err == nil {
-		parseResult, err := htmlParser.Parse(bytes.NewReader(bodyBytes))
-		if err == nil && parseResult != nil {
-			result.OutgoingLinks = parseResult.Links
-			result.HTMLMetadata = parseResult.Metadata
-			result.Images = parseResult.Images
-
-			// Analyze images if any were found
-			if len(parseResult.Images) > 0 {
-				analyzer := NewImageAnalyzer(parseResult.Images)
-				result.ImageAnalysis = analyzer.Analyze()
-			}
-		}
-	}
-
-	// Detect technologies
-	techDetector := NewTechDetector()
-	result.Technologies = techDetector.Detect(resp.Header, string(bodyBytes))
-
-	// Update total time to include deep analysis
-	result.TotalMs = time.Since(startTime).Milliseconds()
-
-	return result
-}
-
-// NormalizeURL ensures the URL has a scheme and is properly formatted
-// Helper function for future use
-func NormalizeURL(rawURL string) string {
-	// If URL doesn't have a scheme, add https://
-	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
-		return "https://" + rawURL
-	}
-	return rawURL
 }

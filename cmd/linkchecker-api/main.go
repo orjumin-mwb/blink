@@ -46,6 +46,9 @@ func main() {
 	// Initialize service with checker, logger, and options
 	svc := service.New(chk, logger, opts)
 
+	// Initialize streaming service for UI
+	streamingSvc := service.NewStreamingService(svc, logger)
+
 	// Initialize screenshot service with queue
 	var queuedScreenshotter *screenshot.QueuedScreenshotter
 	var cleanupService *screenshot.CleanupService
@@ -71,7 +74,7 @@ func main() {
 	if queuedScreenshotter != nil {
 		screenshotService = queuedScreenshotter
 	}
-	server := httpapi.NewServer(addr, logger, svc, screenshotService)
+	server := httpapi.NewServer(addr, logger, svc, screenshotService, streamingSvc)
 
 	// Channel to listen for OS signals (Ctrl+C, kill, etc.)
 	quit := make(chan os.Signal, 1)

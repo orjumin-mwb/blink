@@ -17,8 +17,8 @@ type Client struct {
 
 // MWBResponse represents the response from MWB API
 type MWBResponse struct {
-	IsMalicious bool `json:"is_malicious"`
-	// Add other fields as needed when we know the full API response
+	IsMalicious bool   `json:"malicious"`
+	URL         string `json:"url"`
 }
 
 // New creates a new MWB API client

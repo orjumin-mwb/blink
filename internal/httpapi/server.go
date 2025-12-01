@@ -9,7 +9,7 @@ import (
 )
 
 // NewServer creates and configures a new HTTP server
-func NewServer(addr string, logger *logging.Logger, svc *service.Service, screenshotter interface{}) *http.Server {
+func NewServer(addr string, logger *logging.Logger, svc *service.Service, screenshotter interface{}, streamingSvc *service.StreamingService) *http.Server {
 	// Create a new router (multiplexer) to handle different routes
 	mux := http.NewServeMux()
 
@@ -21,6 +21,12 @@ func NewServer(addr string, logger *logging.Logger, svc *service.Service, screen
 
 	// Register the deep-check endpoint
 	mux.HandleFunc("/deep-check", deepCheckHandler(svc))
+
+	// Register the UI endpoints
+	if streamingSvc != nil {
+		mux.HandleFunc("/ui", uiFormHandler())
+		mux.HandleFunc("/ui/stream", uiStreamHandler(streamingSvc))
+	}
 
 	// Register the screenshot endpoint if screenshotter is provided
 	if screenshotter != nil {
