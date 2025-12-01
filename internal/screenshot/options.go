@@ -72,4 +72,7 @@ type Result struct {
 	URL           string `json:"url"`
 	Error         string `json:"error,omitempty"`
 	ResponseType  string `json:"response_type,omitempty"`
+	BlurHash      string `json:"blurhash,omitempty"`  // BlurHash for progressive loading
+	Width         int    `json:"width,omitempty"`     // Image dimensions for decode
+	Height        int    `json:"height,omitempty"`    // Image dimensions for decode
 }

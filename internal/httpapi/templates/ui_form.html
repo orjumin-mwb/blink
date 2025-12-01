@@ -6,6 +6,7 @@
     <title>Blink URL Checker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/blurhash@2.0.5/dist/blurhash.min.js"></script>
     <style>
         @keyframes pulse-slow {
             0%, 100% { opacity: 1; }
@@ -366,6 +367,12 @@
                     document.getElementById('progress-bar').style.backgroundColor = '';
                 }, 3000);
 
+                // Trigger screenshot loading
+                const urlInput = document.querySelector('input[name="url"]');
+                if (urlInput && urlInput.value) {
+                    setTimeout(() => loadScreenshot(urlInput.value), 100);
+                }
+
                 // Close the connection
                 eventSource.close();
                 eventSource = null;
@@ -391,6 +398,12 @@
                 setTimeout(function() {
                     document.getElementById('progress-container').classList.add('hidden');
                 }, 2000);
+
+                // Trigger screenshot loading
+                const urlInput = document.querySelector('input[name="url"]');
+                if (urlInput && urlInput.value) {
+                    setTimeout(() => loadScreenshot(urlInput.value), 100);
+                }
 
                 // Close the connection
                 eventSource.close();
@@ -441,6 +454,78 @@
                 }
             };
         });
+
+        // Screenshot Loading Function
+        function loadScreenshot(url) {
+            const canvas = document.getElementById('blurhash-canvas');
+            const img = document.getElementById('screenshot-img');
+            const loading = document.getElementById('screenshot-loading');
+            const info = document.getElementById('screenshot-info');
+
+            if (!canvas || !img) return;
+
+            // Fetch screenshot
+            fetch('/screenshot', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url: url, response_type: 'base64'})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.base64_data) {
+                    // Step 1: Decode and render blurhash if available
+                    if (data.blurhash && data.width && data.height && typeof BlurHash !== 'undefined') {
+                        try {
+                            const pixels = BlurHash.decode(data.blurhash, 32, 32);
+                            canvas.width = 32;
+                            canvas.height = 32;
+                            const ctx = canvas.getContext('2d');
+                            const imageData = ctx.createImageData(32, 32);
+                            imageData.data.set(pixels);
+                            ctx.putImageData(imageData, 0, 0);
+                            canvas.style.opacity = '1';
+                        } catch (err) {
+                            console.error('Failed to decode blurhash:', err);
+                        }
+                    }
+
+                    // Step 2: Load full screenshot image
+                    img.src = data.base64_data;
+
+                    img.onload = function() {
+                        if (loading) loading.style.display = 'none';
+
+                        // Show info
+                        if (info && data.capture_time_ms) {
+                            info.textContent = `Screenshot captured in ${data.capture_time_ms}ms`;
+                            info.style.display = 'block';
+                        }
+
+                        // Fade in sharp image, fade out blur
+                        setTimeout(() => {
+                            img.classList.add('screenshot-loaded');
+                            canvas.classList.add('screenshot-placeholder-hidden');
+                        }, 50);
+                    };
+
+                    img.onerror = function() {
+                        if (loading) {
+                            loading.innerHTML = '<span class="text-red-500 text-sm">Failed to load screenshot</span>';
+                        }
+                    };
+                } else {
+                    if (loading) {
+                        loading.innerHTML = '<span class="text-red-500 text-sm">Screenshot unavailable: ' + (data.error || 'Unknown error') + '</span>';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Failed to fetch screenshot:', err);
+                if (loading) {
+                    loading.innerHTML = '<span class="text-red-500 text-sm">Screenshot failed: ' + err.message + '</span>';
+                }
+            });
+        }
     </script>
 </body>
 </html>

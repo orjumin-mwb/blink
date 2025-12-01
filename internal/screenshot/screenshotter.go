@@ -1,14 +1,17 @@
 package screenshot
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/base64"
 	"fmt"
+	"image/png"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/buckket/go-blurhash"
 	"github.com/chromedp/chromedp"
 )
 
@@ -91,12 +94,38 @@ func (s *Screenshotter) Capture(ctx context.Context, opts *Options) (*Result, er
 
 	captureTime := time.Since(start).Milliseconds()
 
+	// Decode PNG and generate blurhash
+	img, err := png.Decode(bytes.NewReader(buf))
+	if err != nil {
+		// Log error but don't fail - blurhash is optional enhancement
+		// Screenshot can still succeed without blurhash
+	}
+
+	var blurHashStr string
+	var imgWidth, imgHeight int
+
+	if img != nil {
+		imgWidth = img.Bounds().Dx()
+		imgHeight = img.Bounds().Dy()
+
+		// Generate blurhash (4x3 components for quality/size balance)
+		hash, err := blurhash.Encode(4, 3, img)
+		if err != nil {
+			// Log error but don't fail - blurhash is optional
+		} else {
+			blurHashStr = hash
+		}
+	}
+
 	result := &Result{
 		Success:       true,
 		SizeBytes:     int64(len(buf)),
 		CaptureTimeMs: captureTime,
 		URL:           opts.URL,
 		ResponseType:  opts.ResponseType,
+		BlurHash:      blurHashStr,
+		Width:         imgWidth,
+		Height:        imgHeight,
 	}
 
 	// Handle response type
