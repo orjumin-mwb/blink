@@ -9,6 +9,8 @@ type DeepCheckResult struct {
 	OutgoingLinks []OutgoingLink `json:"outgoing_links,omitempty"`
 	Technologies  []Technology   `json:"technologies,omitempty"`
 	HTMLMetadata  *HTMLMetadata  `json:"html_metadata,omitempty"`
+	Images        []Image        `json:"images"`
+	ImageAnalysis *ImageAnalysis `json:"image_analysis,omitempty"`
 }
 
 // OutgoingLink represents a link found in the HTML
@@ -39,8 +41,33 @@ type HTMLMetadata struct {
 	TwitterCard map[string]string `json:"twitter_card,omitempty"`
 }
 
+// Image represents an extracted image from HTML
+type Image struct {
+	Src         string `json:"src"`                  // Original src attribute
+	AbsoluteURL string `json:"absolute_url"`         // Resolved to absolute URL
+	Alt         string `json:"alt,omitempty"`       // Alt text for accessibility
+	Title       string `json:"title,omitempty"`     // Title attribute
+	Width       int    `json:"width,omitempty"`      // Width attribute
+	Height      int    `json:"height,omitempty"`     // Height attribute
+	Loading     string `json:"loading,omitempty"`    // lazy/eager
+	Format      string `json:"format,omitempty"`     // jpg/png/webp/svg
+	SourceType  string `json:"source_type"`         // "img"/"css"/"picture"/"svg"
+}
+
+// ImageAnalysis provides insights about images
+type ImageAnalysis struct {
+	TotalImages        int              `json:"total_images"`
+	MissingAlt         []string         `json:"missing_alt,omitempty"`
+	LazyLoadedCount    int              `json:"lazy_loaded_count"`
+	MissingSizes       []string         `json:"missing_sizes,omitempty"`
+	WebPUsage          int              `json:"webp_usage"`
+	Formats            map[string]int   `json:"formats"`
+	AccessibilityScore int              `json:"accessibility_score"` // 0-100
+}
+
 // HTMLParseResult holds parsing results (internal use)
 type HTMLParseResult struct {
 	Links    []OutgoingLink
 	Metadata *HTMLMetadata
+	Images   []Image
 }

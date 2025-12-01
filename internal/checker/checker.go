@@ -12,19 +12,22 @@ import (
 
 	"github.com/olegrjumin/blink/internal/httpclient"
 	"github.com/olegrjumin/blink/internal/mwbapi"
+	"github.com/olegrjumin/blink/internal/scamguardapi"
 )
 
 // Checker performs URL checks
 type Checker struct {
-	client    *httpclient.Client
-	mwbClient *mwbapi.Client
+	client          *httpclient.Client
+	mwbClient       *mwbapi.Client
+	scamGuardClient *scamguardapi.Client
 }
 
 // New creates a new Checker instance
-func New(client *httpclient.Client, mwbClient *mwbapi.Client) *Checker {
+func New(client *httpclient.Client, mwbClient *mwbapi.Client, scamGuardClient *scamguardapi.Client) *Checker {
 	return &Checker{
-		client:    client,
-		mwbClient: mwbClient,
+		client:          client,
+		mwbClient:       mwbClient,
+		scamGuardClient: scamGuardClient,
 	}
 }
 
@@ -61,6 +64,22 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 
 	// Set protocol
 	result.Protocol = parsedURL.Scheme
+
+	// Check MWB reputation FIRST - fail fast if malicious
+	isMalicious, err := c.mwbClient.CheckURL(ctx, rawURL)
+	if err != nil {
+		// If MWB check fails, log but continue with regular check
+		result.MWBURLChecker = false
+	} else {
+		result.MWBURLChecker = isMalicious
+		if isMalicious {
+			// URL is malicious - stop immediately
+			result.ErrorType = ErrorHTTP
+			result.ErrorMessage = "URL flagged as malicious by Malwarebytes URL Checker"
+			result.TotalMs = time.Since(startTime).Milliseconds()
+			return result
+		}
+	}
 
 	// Step 2: Perform HTTP request with redirect handling
 	currentURL := rawURL
@@ -179,17 +198,6 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 		}
 	}
 
-	// Call MWB API to check if URL is malicious
-	// Use the original URL for the MWB check, not the final URL after redirects
-	isMalicious, err := c.mwbClient.CheckURL(ctx, rawURL)
-	if err != nil {
-		// If MWB API fails, log but don't fail the whole check
-		// Set to false as fallback
-		result.MWBURLChecker = false
-	} else {
-		result.MWBURLChecker = isMalicious
-	}
-
 	// Determine if the link is "OK"
 	// 2xx and 3xx status codes are considered successful
 	if result.Status >= 200 && result.Status < 400 {
@@ -211,6 +219,7 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts CheckOpt
 	// Create deep result with embedded basic result
 	result := &DeepCheckResult{
 		CheckResult: *basicResult,
+		Images:      []Image{}, // Initialize as empty slice to ensure JSON serializes as [] not null
 	}
 
 	// If basic check failed or non-200, return early
@@ -250,6 +259,13 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts CheckOpt
 		if err == nil && parseResult != nil {
 			result.OutgoingLinks = parseResult.Links
 			result.HTMLMetadata = parseResult.Metadata
+			result.Images = parseResult.Images
+
+			// Analyze images if any were found
+			if len(parseResult.Images) > 0 {
+				analyzer := NewImageAnalyzer(parseResult.Images)
+				result.ImageAnalysis = analyzer.Analyze()
+			}
 		}
 	}
 

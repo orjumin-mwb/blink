@@ -14,6 +14,8 @@ import (
 	"github.com/olegrjumin/blink/internal/httpclient"
 	"github.com/olegrjumin/blink/internal/logging"
 	"github.com/olegrjumin/blink/internal/mwbapi"
+	"github.com/olegrjumin/blink/internal/scamguardapi"
+	"github.com/olegrjumin/blink/internal/screenshot"
 	"github.com/olegrjumin/blink/internal/service"
 )
 
@@ -30,8 +32,17 @@ func main() {
 	// Initialize MWB API client
 	mwbClient := mwbapi.New()
 
-	// Initialize checker with the HTTP client and MWB API client
-	chk := checker.New(httpClient, mwbClient)
+	// Initialize ScamGuard API client (conditionally)
+	var scamGuardClient *scamguardapi.Client
+	if cfg.ScamGuardEnabled {
+		scamGuardClient = scamguardapi.New(cfg.ScamGuardBaseURL, cfg.ScamGuardUserAgent)
+		logger.Info("ScamGuard integration enabled", "baseURL", cfg.ScamGuardBaseURL)
+	} else {
+		logger.Info("ScamGuard integration disabled")
+	}
+
+	// Initialize checker with the HTTP client, MWB API client, and ScamGuard client
+	chk := checker.New(httpClient, mwbClient, scamGuardClient)
 
 	// Create service options from config
 	opts := checker.CheckOptions{
@@ -45,11 +56,35 @@ func main() {
 	// Initialize service with checker, logger, and options
 	svc := service.New(chk, logger, opts)
 
+	// Initialize streaming service for UI
+	streamingSvc := service.NewStreamingService(svc, logger)
+
+	// Initialize screenshot service with queue
+	var queuedScreenshotter *screenshot.QueuedScreenshotter
+	var cleanupService *screenshot.CleanupService
+
+	qs, err := screenshot.NewQueuedScreenshotter(cfg.BrowserPoolSize, cfg.ScreenshotQueueSize, cfg.ScreenshotDir)
+	if err != nil {
+		logger.Error("Failed to initialize screenshot service", "error", err)
+		// Continue without screenshot service - it's optional
+	} else {
+		queuedScreenshotter = qs
+
+		// Start cleanup service
+		cleanupService = screenshot.NewCleanupService(cfg.ScreenshotDir, cfg.ScreenshotMaxAge, cfg.CleanupInterval)
+		cleanupService.Start()
+		logger.Info("Screenshot cleanup service started", "maxAge", cfg.ScreenshotMaxAge, "interval", cfg.CleanupInterval)
+	}
+
 	// Create server address from config
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
-	// Create a new HTTP server
-	server := httpapi.NewServer(addr, logger, svc)
+	// Create a new HTTP server (pass queued screenshotter if available)
+	var screenshotService interface{}
+	if queuedScreenshotter != nil {
+		screenshotService = queuedScreenshotter
+	}
+	server := httpapi.NewServer(addr, logger, svc, screenshotService, streamingSvc)
 
 	// Channel to listen for OS signals (Ctrl+C, kill, etc.)
 	quit := make(chan os.Signal, 1)
@@ -75,6 +110,17 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		logger.Error("Server forced to shutdown", "error", err)
 		os.Exit(1)
+	}
+
+	// Cleanup screenshot service
+	if cleanupService != nil {
+		cleanupService.Stop()
+		logger.Info("Screenshot cleanup service stopped")
+	}
+	if queuedScreenshotter != nil {
+		if err := queuedScreenshotter.Close(); err != nil {
+			logger.Error("Failed to close screenshot service", "error", err)
+		}
 	}
 
 	logger.Info("Server stopped gracefully")
