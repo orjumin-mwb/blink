@@ -2,31 +2,29 @@
 
 <div class="bg-white rounded-lg shadow-md p-6 mb-4 animate-fadeIn">
     <!-- Header with URL and Status -->
-    <div class="flex items-start justify-between mb-4">
-        <div class="flex-1 mr-4">
-            <div class="flex items-center space-x-3 mb-2">
-                {{ if .OK }}
-                    <span class="text-3xl">✓</span>
-                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">OK</span>
-                {{ else }}
-                    <span class="text-3xl">✗</span>
-                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
-                {{ end }}
-                <span class="px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-700">{{ .Status }}</span>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800 break-all">{{ .URL }}</h3>
-            {{ if ne .FinalURL .URL }}
-            <p class="text-sm text-gray-500 mt-1">
-                → Final: <span class="font-medium">{{ .FinalURL }}</span>
-            </p>
+    <div class="mb-6">
+        <div class="flex items-center space-x-3 mb-2">
+            {{ if .OK }}
+                <span class="text-3xl">✓</span>
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">OK</span>
+            {{ else }}
+                <span class="text-3xl">✗</span>
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
             {{ end }}
+            <span class="px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-700">{{ .Status }}</span>
         </div>
-
-        <div class="text-right flex-shrink-0">
-            <div class="text-3xl font-bold text-gray-800">{{ .TotalMs }}ms</div>
-            <div class="text-sm font-medium text-gray-500">{{ .SpeedClass }}</div>
-        </div>
+        <h3 class="text-lg font-semibold text-gray-800 break-all">{{ .URL }}</h3>
+        {{ if ne .FinalURL .URL }}
+        <p class="text-sm text-gray-500 mt-1">
+            → Final: <span class="font-medium">{{ .FinalURL }}</span>
+        </p>
+        {{ end }}
     </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Main Info (2/3 width) -->
+        <div class="lg:col-span-2">
 
     <!-- Timing Breakdown -->
     <div class="mb-4 p-4 bg-gray-50 rounded-lg">
@@ -38,8 +36,10 @@
                 <div class="w-24 text-sm text-gray-600">DNS:</div>
                 <div class="flex-1">
                     <div class="flex items-center">
-                        <div class="h-2 bg-blue-400 rounded" style="width: {{ .DNSMs }}px; max-width: 100%;"></div>
-                        <span class="ml-2 text-sm font-medium text-gray-700">{{ .DNSMs }}ms</span>
+                        <div class="bg-gray-200 rounded-full h-2 flex-1 mr-2">
+                            <div class="h-2 bg-blue-400 rounded-full" style="width: {{ scaleBar .DNSMs .TotalMs }};"></div>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 w-16 text-right">{{ .DNSMs }}ms</span>
                     </div>
                 </div>
             </div>
@@ -50,8 +50,10 @@
                 <div class="w-24 text-sm text-gray-600">Connect:</div>
                 <div class="flex-1">
                     <div class="flex items-center">
-                        <div class="h-2 bg-green-400 rounded" style="width: {{ .ConnectMs }}px; max-width: 100%;"></div>
-                        <span class="ml-2 text-sm font-medium text-gray-700">{{ .ConnectMs }}ms</span>
+                        <div class="bg-gray-200 rounded-full h-2 flex-1 mr-2">
+                            <div class="h-2 bg-green-400 rounded-full" style="width: {{ scaleBar .ConnectMs .TotalMs }};"></div>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 w-16 text-right">{{ .ConnectMs }}ms</span>
                     </div>
                 </div>
             </div>
@@ -62,8 +64,10 @@
                 <div class="w-24 text-sm text-gray-600">TLS:</div>
                 <div class="flex-1">
                     <div class="flex items-center">
-                        <div class="h-2 bg-purple-400 rounded" style="width: {{ .TLSMs }}px; max-width: 100%;"></div>
-                        <span class="ml-2 text-sm font-medium text-gray-700">{{ .TLSMs }}ms</span>
+                        <div class="bg-gray-200 rounded-full h-2 flex-1 mr-2">
+                            <div class="h-2 bg-purple-400 rounded-full" style="width: {{ scaleBar .TLSMs .TotalMs }};"></div>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 w-16 text-right">{{ .TLSMs }}ms</span>
                     </div>
                 </div>
             </div>
@@ -74,8 +78,10 @@
                 <div class="w-24 text-sm text-gray-600">TTFB:</div>
                 <div class="flex-1">
                     <div class="flex items-center">
-                        <div class="h-2 bg-yellow-400 rounded" style="width: {{ .TTFBMs }}px; max-width: 100%;"></div>
-                        <span class="ml-2 text-sm font-medium text-gray-700">{{ .TTFBMs }}ms</span>
+                        <div class="bg-gray-200 rounded-full h-2 flex-1 mr-2">
+                            <div class="h-2 bg-yellow-400 rounded-full" style="width: {{ scaleBar .TTFBMs .TotalMs }};"></div>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 w-16 text-right">{{ .TTFBMs }}ms</span>
                     </div>
                 </div>
             </div>
@@ -177,41 +183,6 @@
     </div>
     {{ end }}
 
-    <!-- Screenshot Section (displays after AI Analysis) -->
-    <div class="border-t pt-4 mt-4" id="screenshot-section">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Screenshot</h4>
-
-        <div class="relative rounded-lg overflow-hidden bg-gray-100" style="width: 100%; height: 400px;">
-            <!-- BlurHash Canvas (blurred placeholder) -->
-            <canvas
-                id="blurhash-canvas"
-                class="absolute inset-0 w-full h-full object-contain transition-opacity duration-500"
-                style="opacity: 0; filter: blur(20px);"
-            ></canvas>
-
-            <!-- Actual Screenshot Image (sharp) -->
-            <img
-                id="screenshot-img"
-                class="absolute inset-0 w-full h-full object-contain transition-opacity duration-500"
-                style="opacity: 0;"
-                alt="Screenshot"
-            />
-
-            <!-- Loading Indicator -->
-            <div id="screenshot-loading"
-                 class="absolute inset-0 flex items-center justify-center bg-gray-100">
-                <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span class="ml-3 text-sm text-gray-600">Capturing screenshot...</span>
-            </div>
-        </div>
-
-        <div id="screenshot-info" class="text-xs text-gray-500 mt-2" style="display: none;">
-        </div>
-    </div>
-
     <!-- Error Message -->
     {{ if not .OK }}
     <div class="border-t pt-4 mt-4">
@@ -226,6 +197,47 @@
         </div>
     </div>
     {{ end }}
+        </div>
+
+        <!-- Right Column: Verdict (1/3 width) -->
+        <div class="lg:col-span-1">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="verdict-gauge text-center">
+                    <svg class="gauge-svg mx-auto" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Colored segments with gaps - no background -->
+                        <!-- Red segment -->
+                        <path d="M 20 100 A 80 80 0 0 1 70 35"
+                              stroke="#ef4444"
+                              stroke-width="14"
+                              fill="none"
+                              stroke-linecap="round"/>
+
+                        <!-- Yellow segment with gaps -->
+                        <path d="M 78 30 A 80 80 0 0 1 122 30"
+                              stroke="#eab308"
+                              stroke-width="14"
+                              fill="none"
+                              stroke-linecap="round"/>
+
+                        <!-- Green segment -->
+                        <path d="M 130 35 A 80 80 0 0 1 180 100"
+                              stroke="#22c55e"
+                              stroke-width="14"
+                              fill="none"
+                              stroke-linecap="round"/>
+
+                        <!-- Indicator dot -->
+                        <circle class="verdict-indicator" cx="20" cy="100" r="8" fill="white" stroke="#1f2937" stroke-width="2"/>
+                    </svg>
+
+                    <div class="mt-2">
+                        <div class="verdict-status text-2xl font-bold text-gray-800">loading...</div>
+                        <div class="verdict-text text-xs text-gray-600 mt-1">Analyzing URL safety...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -238,15 +250,72 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-/* Screenshot progressive loading styles */
-.screenshot-loaded {
-    opacity: 1 !important;
-    filter: none !important;
+/* Verdict Gauge Styles */
+.gauge-svg {
+    width: 160px;
+    height: 100px;
 }
 
-.screenshot-placeholder-hidden {
-    opacity: 0 !important;
+.gauge-segment {
+    stroke-linecap: round;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
 }
+
+.gauge-red {
+    stroke: #ef4444;
+}
+
+.gauge-yellow {
+    stroke: #eab308;
+}
+
+.gauge-green {
+    stroke: #22c55e;
+}
+
+.verdict-indicator {
+    /* No animation - static display */
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.verdict-label {
+    margin-top: -10px;
+    margin-bottom: 8px;
+}
+
+.verdict-status {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #1f2937;
+    text-transform: lowercase;
+    letter-spacing: -0.025em;
+}
+
+.verdict-description {
+    margin-top: 4px;
+}
+
+.verdict-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* Verdict state colors */
+.verdict-bad .verdict-status {
+    color: #dc2626;
+}
+
+.verdict-unknown .verdict-status {
+    color: #ca8a04;
+}
+
+.verdict-safe .verdict-status {
+    color: #16a34a;
+}
+
+/* No animations - static display */
 
 /* Markdown styling for ScamGuard analysis */
 .markdown-content {
@@ -320,3 +389,98 @@
     color: #6b7280;
 }
 </style>
+
+<script>
+// Verdict gauge component logic
+(function() {
+    // Initialize verdict based on page data
+    let verdict = 'unknown'; // Default state
+
+    // Check if we have MWB malicious flag
+    {{ if .MWBURLChecker }}
+    verdict = 'bad';
+    {{ else if .OK }}
+    // If the check succeeded and no malicious flag, it's safe
+    verdict = 'safe';
+    {{ else }}
+    // If check failed, it's unknown/uncertain
+    verdict = 'unknown';
+    {{ end }}
+
+    // Override with ScamGuard verdict if available
+    {{ if .ScamGuard }}
+    {{ if .ScamGuard.Verdict }}
+    verdict = '{{ .ScamGuard.Verdict }}';
+    {{ end }}
+    {{ end }}
+
+    // Map verdict values to our three states
+    function normalizeVerdict(v) {
+        if (!v) return 'unknown';
+        v = v.toLowerCase();
+        if (v === 'malicious' || v === 'bad' || v === 'suspicious') return 'bad';
+        if (v === 'safe' || v === 'clean' || v === 'ok') return 'safe';
+        return 'unknown';
+    }
+
+    // Update the verdict display
+    function updateVerdict(newVerdict) {
+        newVerdict = normalizeVerdict(newVerdict);
+
+        const indicator = document.querySelector('.verdict-indicator');
+        const statusEl = document.querySelector('.verdict-status');
+        const textEl = document.querySelector('.verdict-text');
+
+        if (!indicator || !statusEl || !textEl) {
+            console.error('Verdict elements not found');
+            return;
+        }
+
+        // Calculate indicator position based on verdict
+        let x, y;
+        let statusText, descText;
+
+        switch(newVerdict) {
+            case 'bad':
+                // Position at start of red arc (left side)
+                x = 20;
+                y = 100;
+                statusText = 'bad';
+                descText = 'If you already entered in this website, don\'t take a risk.';
+                break;
+            case 'safe':
+                // Position at end of gauge (right side)
+                x = 180;
+                y = 100;
+                statusText = 'safe';
+                descText = 'No threats detected, this link appears safe.';
+                break;
+            case 'unknown':
+            default:
+                // Position in middle (top)
+                x = 100;
+                y = 20;
+                statusText = 'uncertain';
+                descText = 'Something doesn\'t look right, proceed carefully.';
+                break;
+        }
+
+        // Animate indicator to new position with smooth transition
+        indicator.setAttribute('cx', x);
+        indicator.setAttribute('cy', y);
+
+        // Update text
+        if (statusEl) statusEl.textContent = statusText;
+        if (textEl) textEl.textContent = descText;
+    }
+
+    // Initialize verdict immediately
+    console.log('Initializing verdict with value:', verdict);
+    setTimeout(() => {
+        updateVerdict(verdict);
+    }, 200);
+
+    // Expose function for external updates (if needed by SSE events)
+    window.updateVerdictGauge = updateVerdict;
+})();
+</script>
