@@ -193,9 +193,14 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 			}
 
 			if timings.TTFBMs > 0 {
+				// Calculate total time so far
+				totalMs := time.Since(startTime).Milliseconds()
+
 				sendEvent(ctx, events, "response", "Got response", map[string]interface{}{
-					"ttfb_ms": timings.TTFBMs,
-					"status":  resp.StatusCode,
+					"ttfb_ms":  timings.TTFBMs,
+					"status":   resp.StatusCode,
+					"total_ms": totalMs,
+					"url":      currentURL,
 				})
 			}
 		}

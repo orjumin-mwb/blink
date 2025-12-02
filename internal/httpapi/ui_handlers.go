@@ -21,6 +21,21 @@ var templateFuncs = template.FuncMap{
 	"add": func(a, b int) int {
 		return a + b
 	},
+	// scaleBar scales timing values to percentage width (0-100%)
+	// Uses the total time as the max to scale proportionally
+	"scaleBar": func(value int64, total int64) string {
+		if total <= 0 {
+			total = 1000 // Default max of 1 second
+		}
+		percentage := float64(value) / float64(total) * 100
+		if percentage > 100 {
+			percentage = 100
+		}
+		if percentage < 1 && value > 0 {
+			percentage = 1 // Minimum 1% width for visibility
+		}
+		return fmt.Sprintf("%.1f%%", percentage)
+	},
 }
 
 // uiFormHandler serves the main UI form page
@@ -80,13 +95,15 @@ func uiStreamHandler(streamingSvc *service.StreamingService) http.HandlerFunc {
 
 		// Stream events
 		for event := range eventChan {
-			// Handle complete, error, and malicious events specially - render HTML
+			// Handle complete, error and malicious events specially - render HTML
 			if event.Stage == "complete" || event.Stage == "error" || event.Stage == "malicious" {
 				// Render the result template
 				var htmlBuf []byte
 				if resultHTML, err := renderResultTemplate(resultTmpl, event.Data); err == nil {
 					htmlBuf = []byte(resultHTML)
 				} else {
+					// Log the template rendering error
+					fmt.Printf("[ERROR] Template rendering failed for stage=%s: %v, data type=%T\n", event.Stage, err, event.Data)
 					// Fallback to JSON if template fails
 					htmlBuf, _ = json.Marshal(event)
 				}
