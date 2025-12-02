@@ -4,10 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blink URL Checker</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3csvg width='38' height='31' viewBox='0 0 38 31' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M32.0027 1.36379C30.6679 0.107605 30.4953 0 30.2403 0C30.1422 0 30.0218 0.0398185 29.9085 0.155956C29.7952 0.272093 19.3001 11.0392 19.3001 11.0392C19.2063 11.1331 19.0859 11.1866 18.9655 11.1866C18.8451 11.1866 18.7247 11.1331 18.6308 11.0392C18.6308 11.0392 8.13579 0.272093 8.02249 0.155956C7.9092 0.0398185 7.78832 0 7.69067 0C7.43564 0 7.26309 0.107605 5.92822 1.36379C3.48128 3.66568 0 9.19524 0 15.0253C0 16.6935 -0.00094754 26.1513 10.2623 30.8551C10.7311 31.0694 11.1928 30.5631 10.8245 30.1858C9.15922 28.4778 7.85231 25.3104 7.85231 22.5809C7.85231 20.2781 8.54867 18.1222 9.7399 16.328C9.91387 16.0199 10.1817 15.9663 10.4898 16.2744C10.4898 16.2744 18.4862 24.3637 18.6204 24.4993C18.7545 24.6354 18.8555 24.6557 18.965 24.6557C19.0745 24.6557 19.1755 24.6349 19.3096 24.4993C19.4438 24.3633 27.4402 16.2744 27.4402 16.2744C27.7483 15.9663 28.0161 16.0199 28.1901 16.328C29.3818 18.1222 30.0777 20.2776 30.0777 22.5809C30.0777 25.3109 28.7708 28.4778 27.1055 30.1858C26.7372 30.5636 27.1994 31.0694 27.6677 30.8551C37.931 26.1513 37.93 16.693 37.93 15.0253C37.93 9.19524 34.4487 3.66615 32.0023 1.36379H32.0027Z' fill='%230059FF'/%3e%3c/svg%3e">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3csvg width='38' height='31' viewBox='0 0 38 31' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M32.0027 1.36379C30.6679 0.107605 30.4953 0 30.2403 0C30.1422 0 30.0218 0.0398185 29.9085 0.155956C29.7952 0.272093 19.3001 11.0392 19.3001 11.0392C19.2063 11.1331 19.0859 11.1866 18.9655 11.1866C18.8451 11.1866 18.7247 11.1331 18.6308 11.0392C18.6308 11.0392 8.13579 0.272093 8.02249 0.155956C7.9092 0.0398185 7.78832 0 7.69067 0C7.43564 0 7.26309 0.107605 5.92822 1.36379C3.48128 3.66568 0 9.19524 0 15.0253C0 16.6935 -0.00094754 26.1513 10.2623 30.8551C10.7311 31.0694 11.1928 30.5631 10.8245 30.1858C9.15922 28.4778 7.85231 25.3104 7.85231 22.5809C7.85231 20.2781 8.54867 18.1222 9.7399 16.328C9.91387 16.0199 10.1817 15.9663 10.4898 16.2744C10.4898 16.2744 18.4862 24.3637 18.6204 24.4993C18.7545 24.6354 18.8555 24.6557 18.965 24.6557C19.0745 24.6557 19.1755 24.6349 19.3096 24.4993C19.4438 24.3633 27.4402 16.2744 27.4402 16.2744C27.7483 15.9663 28.0161 16.0199 28.1901 16.328C29.3818 18.1222 30.0777 20.2776 30.0777 22.5809C30.0777 25.3109 28.7708 28.4778 27.1055 30.1858C26.7372 30.5636 27.1994 31.0694 27.6677 30.8551C37.931 26.1513 37.93 16.693 37.93 15.0253C37.93 9.19524 34.4487 3.66615 32.0023 1.36379H32.0027Z' fill='%230059FF'/%3e%3c/svg%3e">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/blurhash@2.0.5/dist/blurhash.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['PP Right Grotesk', 'system-ui', 'sans-serif'],
+                        'body': ['Spline Sans', 'system-ui', 'sans-serif']
+                    },
+                    colors: {
+                        'primary-blue': '#0059FF',
+                        'dark-blue': '#001B4D',
+                        'light-bg': '#D5EEFF'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        /* Custom Font Imports */
+        @font-face {
+            font-family: 'PP Right Grotesk';
+            src: url('https://www.malwarebytes.com/wp-content/themes/malwarebytes/assets/build/fonts/PPRightGrotesk-CompactDark.b5625601.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Spline Sans';
+            src: url('https://www.malwarebytes.com/wp-content/themes/malwarebytes/assets/build/fonts/SplineSans-Regular.7b0c3511.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Spline Sans';
+            src: url('https://www.malwarebytes.com/wp-content/themes/malwarebytes/assets/build/fonts/SplineSans-SemiBold.5c8398a6.woff2') format('woff2');
+            font-weight: 600;
+            font-style: normal;
+            font-display: swap;
+        }
         @keyframes pulse-slow {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -15,14 +58,17 @@
 
         .progress-stage {
             transition: all 0.3s ease;
+            font-family: 'Spline Sans', system-ui, sans-serif;
         }
 
         .stage-active {
             animation: pulse-slow 2s ease-in-out infinite;
+            background-color: #001B4D !important;
+            color: white !important;
         }
 
         .stage-complete {
-            background-color: #10b981 !important;
+            background-color: #0059FF !important;
             color: white !important;
         }
 
@@ -38,10 +84,12 @@
         /* Markdown styling for ScamGuard analysis */
         .markdown-content {
             line-height: 1.6;
+            font-family: 'Spline Sans', system-ui, sans-serif;
         }
 
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            font-weight: 600;
+            font-family: 'PP Right Grotesk', system-ui, sans-serif;
+            font-weight: 700;
             margin-top: 1em;
             margin-bottom: 0.5em;
         }
@@ -126,53 +174,72 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-1">Blink URL Checker</h1>
-            <p class="text-gray-600 text-sm">Check URL health, redirects, TLS certificates, and performance</p>
-        </div>
+<body class="min-h-screen font-body" style="background-color: #D5EEFF;">
+    <!-- Initial Centered Form View -->
+    <header id="initial-form" class="min-h-screen flex items-center justify-center p-6">
+        <div class="w-full max-w-2xl">
+            <!-- Centered Header -->
+            <div class="text-center mb-16">
+                <!-- Logo -->
+                <div class="mb-8">
+                    <svg width="76" height="62" viewBox="0 0 38 31" fill="none" xmlns="http://www.w3.org/2000/svg" class="mx-auto">
+                        <path d="M32.0027 1.36379C30.6679 0.107605 30.4953 0 30.2403 0C30.1422 0 30.0218 0.0398185 29.9085 0.155956C29.7952 0.272093 19.3001 11.0392 19.3001 11.0392C19.2063 11.1331 19.0859 11.1866 18.9655 11.1866C18.8451 11.1866 18.7247 11.1331 18.6308 11.0392C18.6308 11.0392 8.13579 0.272093 8.02249 0.155956C7.9092 0.0398185 7.78832 0 7.69067 0C7.43564 0 7.26309 0.107605 5.92822 1.36379C3.48128 3.66568 0 9.19524 0 15.0253C0 16.6935 -0.00094754 26.1513 10.2623 30.8551C10.7311 31.0694 11.1928 30.5631 10.8245 30.1858C9.15922 28.4778 7.85231 25.3104 7.85231 22.5809C7.85231 20.2781 8.54867 18.1222 9.7399 16.328C9.91387 16.0199 10.1817 15.9663 10.4898 16.2744C10.4898 16.2744 18.4862 24.3637 18.6204 24.4993C18.7545 24.6354 18.8555 24.6557 18.965 24.6557C19.0745 24.6557 19.1755 24.6349 19.3096 24.4993C19.4438 24.3633 27.4402 16.2744 27.4402 16.2744C27.7483 15.9663 28.0161 16.0199 28.1901 16.328C29.3818 18.1222 30.0777 20.2776 30.0777 22.5809C30.0777 25.3109 28.7708 28.4778 27.1055 30.1858C26.7372 30.5636 27.1994 31.0694 27.6677 30.8551C37.931 26.1513 37.93 16.693 37.93 15.0253C37.93 9.19524 34.4487 3.66615 32.0023 1.36379H32.0027Z" fill="#0059FF"/>
+                    </svg>
+                </div>
+                
+                <!-- Main Headline -->
+                <div class="mb-10">
+                    <h1 class="font-heading font-black text-dark-blue mb-2" style="font-size: 92px; line-height: 90%; letter-spacing: -2%;">
+                        Suspicious link?
+                    </h1>
+                    <h2 class="font-heading font-black" style="font-size: 92px; line-height: 90%; letter-spacing: -2%;">
+                        <span class="text-primary-blue">Blink</span> 
+                        <span class="text-dark-blue">and know.</span>
+                    </h2>
+                </div>
+            </div>
 
-        <!-- Two Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left Column (2/3 width) -->
-            <div class="lg:col-span-2">
-                <!-- Form -->
-                <div class="bg-white rounded-lg shadow-md p-6 mb-4">
-                    <form id="check-form" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                URL to Check
-                            </label>
-                            <input type="url"
-                                   name="url"
-                                   placeholder="https://example.com"
-                                   required
-                                   autofocus
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
-                        </div>
+            <!-- Sleek Input Form -->
+            <div class="max-w-4xl mx-auto">
+                <form id="check-form">
+                    <div class="flex bg-white rounded-full shadow-xl p-2 border-2 border-gray-100 hover:border-primary-blue transition-all duration-300">
+                        <input type="url"
+                               name="url"
+                               placeholder="example-suspicious-url.com"
+                               required
+                               autofocus
+                               class="flex-1 px-8 py-4 text-xl font-body text-gray-700 placeholder-gray-400 bg-transparent border-0 focus:outline-none focus:ring-0">
+                        <button type="submit"
+                                class="bg-primary-blue text-white px-8 py-4 rounded-full hover:bg-dark-blue transition-all duration-300 font-semibold font-body text-lg flex items-center space-x-2 shadow-lg">
+                            <span>Check URL</span>
+                            <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7.79167 11.9167C8.95278 11.9167 9.93056 11.5194 10.725 10.725C11.5194 9.93056 11.9167 8.95278 11.9167 7.79167C11.9167 6.63056 11.5194 5.65278 10.725 4.85833C9.93056 4.06389 8.95278 3.66667 7.79167 3.66667C6.63056 3.66667 5.65278 4.06389 4.85833 4.85833C4.06389 5.65278 3.66667 6.63056 3.66667 7.79167C3.66667 8.95278 4.06389 9.93056 4.85833 10.725C5.65278 11.5194 6.63056 11.9167 7.79167 11.9167ZM7.79167 15.5833C5.62222 15.5833 3.78125 14.8271 2.26875 13.3146C0.756251 11.8021 0 9.96111 0 7.79167C0 5.62222 0.756251 3.78125 2.26875 2.26875C3.78125 0.756249 5.62222 -1.90735e-06 7.79167 -1.90735e-06C9.96111 -1.90735e-06 11.8021 0.756249 13.3146 2.26875C14.8271 3.78125 15.5833 5.62222 15.5833 7.79167C15.5833 8.49444 15.484 9.18958 15.2854 9.87708C15.0868 10.5646 14.7889 11.2139 14.3917 11.825L17.9667 15.4C18.3333 15.7667 18.509 16.1944 18.4937 16.6833C18.4785 17.1722 18.2875 17.6 17.9208 17.9667C17.5542 18.3028 17.1264 18.4785 16.6375 18.4938C16.1486 18.509 15.7208 18.3333 15.3542 17.9667L11.825 14.4375C11.2139 14.8347 10.5646 15.125 9.87708 15.3083C9.18958 15.4917 8.49444 15.5833 7.79167 15.5833Z" fill="white"/>
+                            </svg>
+                        </button>
 
-                        <div class="flex items-center justify-between">
-                            <button type="submit"
-                                    class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition font-medium">
-                                Check URL
-                            </button>
-
-                            <div id="loading" class="hidden items-center text-gray-600">
+                            <div id="loading" class="hidden items-center text-primary-blue font-body">
                                 <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Checking...
+                                Analyzing...
                             </div>
-                        </div>
-                    </form>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+        
+        <!-- Results Section (appears below the form) -->
+        <div id="results-section" class="hidden max-w-7xl mx-auto mt-12">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column (2/3 width) -->
+                <div class="lg:col-span-2">
 
                     <!-- Progress Indicators -->
-                    <div id="progress-container" class="mt-6 hidden">
+                    <div id="progress-container" class="bg-white rounded-lg shadow-md p-6 mb-4 hidden">
                         <div class="flex items-center justify-between mb-2">
-                            <div class="text-sm font-medium text-gray-700">Progress</div>
+                            <div class="text-sm font-semibold text-gray-700 font-body">Progress</div>
                             <div class="flex flex-wrap gap-2">
                                 <span id="stage-dns" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
                                 <span id="stage-tcp" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
@@ -182,16 +249,16 @@
                             </div>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="progress-bar" class="progress-bar bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                            <div id="progress-bar" class="progress-bar bg-primary-blue h-2 rounded-full" style="width: 0%"></div>
                         </div>
-                        <div id="progress-message" class="text-sm text-gray-600 mt-2"></div>
+                        <div id="progress-message" class="text-sm text-gray-600 mt-2 font-body"></div>
                     </div>
                 </div>
 
                 <!-- ScamGuard Analysis Stream -->
                 <div id="scamguard-stream" class="hidden bg-white rounded-lg shadow-md p-6 mb-4 animate-fadeIn">
-                    <div class="text-sm font-semibold text-gray-800 mb-3">AI Security Analysis</div>
-                    <div id="scamguard-text" class="text-sm text-gray-700 markdown-content"></div>
+                    <div class="text-sm font-bold text-gray-800 mb-3 font-heading">AI Security Analysis</div>
+                    <div id="scamguard-text" class="text-sm text-gray-700 markdown-content font-body"></div>
                 </div>
 
                 <!-- Detailed Results (appears at the end) -->
@@ -202,7 +269,7 @@
             <div class="lg:col-span-1">
                 <!-- Screenshot Section -->
                 <div id="screenshot-section" class="hidden bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
-                    <h4 class="text-xs font-semibold text-gray-700 mb-2">Screenshot</h4>
+                    <h4 class="text-xs font-bold text-gray-700 mb-2 font-heading">Screenshot</h4>
 
                     <div class="relative rounded-lg overflow-hidden bg-gray-100" style="width: 100%; aspect-ratio: 16/10;">
                         <!-- BlurHash Canvas (blurred placeholder) -->
@@ -224,7 +291,7 @@
                         <div id="screenshot-loading"
                              class="absolute inset-0 flex items-center justify-center bg-gray-100">
                             <div class="flex flex-col items-center">
-                                <svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
@@ -233,15 +300,16 @@
                         </div>
                     </div>
 
-                    <div id="screenshot-info" class="text-xs text-gray-500 mt-2" style="display: none;"></div>
+                    <div id="screenshot-info" class="text-xs text-gray-500 mt-2 font-body" style="display: none;"></div>
                 </div>
             </div>
+            </div>
         </div>
+    </header>
 
-        <!-- Footer -->
-        <div class="text-center text-gray-500 text-sm mt-8">
-            <p>Powered by Blink Link Checker API</p>
-        </div>
+    <!-- Footer -->
+    <div class="text-center text-gray-500 text-sm p-6 font-body">
+        <p>Powered by Blink Link Checker API</p>
     </div>
 
     <script>
@@ -255,14 +323,18 @@
             console.error('marked.js library is not loaded!');
         }
 
-        // Handle form submission
-        document.getElementById('check-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Store current URL for screenshot functionality
+        let currentAnalysisURL = '';
 
-            const urlInput = this.querySelector('input[name="url"]');
-            const url = urlInput.value;
-
+        // Function to handle URL analysis
+        function handleURLSubmission(url) {
             if (!url) return;
+
+            // Store URL for screenshot functionality
+            currentAnalysisURL = url;
+
+            // Show results section below the form
+            document.getElementById('results-section').classList.remove('hidden');
 
             // Clear previous results and hide sections
             document.getElementById('results').innerHTML = '';
@@ -302,7 +374,7 @@
             }
             if (loading) {
                 loading.style.display = 'flex';
-                loading.innerHTML = '<svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-3 text-sm text-gray-600">Capturing screenshot...</span>';
+                loading.innerHTML = '<svg class="animate-spin h-8 w-8 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-3 text-sm text-gray-600">Capturing screenshot...</span>';
             }
 
             // Close existing connection
@@ -313,6 +385,23 @@
             // Create EventSource for SSE
             const params = new URLSearchParams({ url: url });
             eventSource = new EventSource('/ui/stream?' + params.toString());
+
+            // Continue with existing event source handlers...
+            setupEventSourceHandlers();
+        }
+
+        // Handle initial form submission
+        document.getElementById('check-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = this.querySelector('input[name="url"]').value;
+            handleURLSubmission(url);
+        });
+
+
+
+        // Setup event source handlers
+        function setupEventSourceHandlers() {
+            // Handle different event types
 
             // Handle different event types
             eventSource.addEventListener('start', function(e) {
@@ -358,7 +447,7 @@
 
                 // Trigger screenshot loading immediately after response
                 document.getElementById('screenshot-section').classList.remove('hidden');
-                loadScreenshot(url);
+                loadScreenshot(currentAnalysisURL);
             });
 
             eventSource.addEventListener('redirect', function(e) {
@@ -694,7 +783,7 @@
                     eventSource = null;
                 }
             };
-        });
+        }
 
         // Screenshot Loading Function
         function loadScreenshot(url) {
