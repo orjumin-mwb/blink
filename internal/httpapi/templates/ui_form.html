@@ -305,56 +305,90 @@
 
             <!-- Right Column (1/3 width) -->
             <div class="lg:col-span-1 min-w-[27rem]">
+                <div class="verdict-gauge text-center bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
+                    <div style="position: relative; width: 300px; height: 160px; margin: 0 auto;">
+                        <svg width="300" height="160" viewBox="0 0 300 160">
+                            <!-- Background track -->
+                            <path d="M 40 140 A 110 110 0 0 1 260 140"
+                                fill="none"
+                                stroke="#f0f0f0"
+                                stroke-width="16"
+                                stroke-linecap="round"/>
+                            
+                            <!-- Red segment (0-50%) -->
+                            <path id="red-segment"
+                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                fill="none"
+                                stroke="#FFB3C6"
+                                stroke-width="16"
+                                stroke-linecap="round"
+                                stroke-dasharray="172.8 345.6"
+                                stroke-dashoffset="0"/>
+                            
+                            <!-- Yellow segment (50-70%) -->
+                            <path id="yellow-segment"
+                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                fill="none"
+                                stroke="#FFF2CC"
+                                stroke-width="16"
+                                stroke-linecap="round"
+                                stroke-dasharray="69.1 345.6"
+                                stroke-dashoffset="-172.8"/>
+                            
+                            <!-- Light Green segment (70-90%) -->
+                            <path id="light-green-segment"
+                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                fill="none"
+                                stroke="#C8E6C9"
+                                stroke-width="16"
+                                stroke-linecap="round"
+                                stroke-dasharray="69.1 345.6"
+                                stroke-dashoffset="-241.9"/>
+                            
+                            <!-- Bright Green segment (90-100%) -->
+                            <path id="bright-green-segment"
+                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                fill="none"
+                                stroke="#A5D6A7"
+                                stroke-width="16"
+                                stroke-linecap="round"
+                                stroke-dasharray="34.6 345.6"
+                                stroke-dashoffset="-311"/>
+                            
+                            <!-- Score indicator dot -->
+                            <circle class="verdict-indicator" 
+                                cx="40" 
+                                cy="140" 
+                                r="12" 
+                                fill="white" 
+                                stroke="#FF6B9D" 
+                                stroke-width="4"/>
+                        </svg>
+                    </div>
+
+                    <div class="mt-2">
+                        <div class="verdict-status text-2xl font-bold text-gray-800">loading...</div>
+                        <div class="verdict-text text-xs text-gray-600 mt-1">Analyzing URL safety...</div>
+                    </div>
+                </div>
                 <!-- Screenshot Section -->
                 <div id="screenshot-section" class="hidden bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
-                     <div class="verdict-gauge text-center">
-                        <svg class="gauge-svg mx-auto" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Colored segments with gaps - no background -->
-                            <!-- Red segment -->
-                            <path d="M 20 100 A 80 80 0 0 1 70 35"
-                                stroke="#ef4444"
-                                stroke-width="14"
-                                fill="none"
-                                stroke-linecap="round"/>
+                     
+                    <h4 class="text-lg font-bold text-gray-700 mb-2 mt-4 font-heading text-center">Screenshot</h4>
 
-                            <!-- Yellow segment with gaps -->
-                            <path d="M 78 30 A 80 80 0 0 1 122 30"
-                                stroke="#eab308"
-                                stroke-width="14"
-                                fill="none"
-                                stroke-linecap="round"/>
-
-                            <!-- Green segment -->
-                            <path d="M 130 35 A 80 80 0 0 1 180 100"
-                                stroke="#22c55e"
-                                stroke-width="14"
-                                fill="none"
-                                stroke-linecap="round"/>
-
-                            <!-- Indicator dot -->
-                            <circle class="verdict-indicator" cx="20" cy="100" r="8" fill="white" stroke="#1f2937" stroke-width="2"/>
-                        </svg>
-
-                        <div class="mt-2">
-                            <div class="verdict-status text-2xl font-bold text-gray-800">loading...</div>
-                            <div class="verdict-text text-xs text-gray-600 mt-1">Analyzing URL safety...</div>
-                        </div>
-                    </div>
-                    <h4 class="text-xs font-bold text-gray-700 mb-2 font-heading">Screenshot</h4>
-
-                    <div class="relative rounded-lg overflow-hidden bg-gray-100" style="width: 100%; aspect-ratio: 16/10;">
+                    <div class="relative bg-white p-4 rounded-xl shadow-md" style="width: 100%; background: linear-gradient(to bottom, #0d3ecb, #305bd8);">
                         <!-- BlurHash Canvas (blurred placeholder) -->
                         <canvas
                             id="blurhash-canvas"
-                            class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                            style="opacity: 0; filter: blur(20px);"
+                            class="w-full rounded-lg transition-opacity duration-500"
+                            style="opacity: 0; filter: blur(20px); aspect-ratio: 16/10;"
                         ></canvas>
 
                         <!-- Actual Screenshot Image (sharp) -->
                         <img
                             id="screenshot-img"
-                            class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                            style="opacity: 0;"
+                            class="absolute top-4 left-4 right-4 bottom-4 w-full rounded-lg shadow-sm transition-opacity duration-500"
+                            style="opacity: 0; aspect-ratio: 16/10; width: calc(100% - 2rem);"
                             alt="Screenshot"
                         />
 
@@ -646,11 +680,9 @@
                             const statusEl = document.querySelector('.verdict-status');
                             const textEl = document.querySelector('.verdict-text');
 
-                            if (indicator && statusEl && textEl) {
-                                indicator.setAttribute('cx', 20);
-                                indicator.setAttribute('cy', 100);
-                                statusEl.textContent = 'bad';
-                                textEl.textContent = "If you already entered in this website, don't take a risk.";
+                            // Let updateVerdictGauge handle the positioning
+                            if (typeof window.updateVerdictGauge === 'function') {
+                                window.updateVerdictGauge('malicious');
                             }
                         }, 100);
                     } else if (typeof html === 'object') {
@@ -759,10 +791,10 @@
                                         break;
                                 }
 
-                                indicator.setAttribute('cx', x);
-                                indicator.setAttribute('cy', y);
-                                statusEl.textContent = statusText;
-                                textEl.textContent = descText;
+                                // Use updateVerdictGauge instead of manual positioning
+                                if (typeof window.updateVerdictGauge === 'function') {
+                                    window.updateVerdictGauge(detectedVerdict);
+                                }
                             }
                         }, 100);
 
@@ -945,6 +977,98 @@
             // Start the first attempt
             attemptScreenshot();
         }
+
+        // Update the new gauge based on verdict
+        function updateVerdictGauge(verdict) {
+            let score = 0;
+            let activeColor = '#FF6B9D';
+            let statusText = 'loading...';
+            let descText = 'Analyzing URL safety...';
+
+            // Convert verdict to score and determine active segment
+            switch(verdict) {
+                case 'bad':
+                case 'malicious':
+                    score = 25; // Red segment
+                    activeColor = '#FF6B9D';
+                    statusText = 'Dangerous';
+                    descText = "If you already entered this website, don't take a risk.";
+                    break;
+                case 'suspicious':
+                    score = 60; // Yellow segment  
+                    activeColor = '#FFD93D';
+                    statusText = 'Suspicious';
+                    descText = "Something doesn't look right, proceed carefully.";
+                    break;
+                case 'safe':
+                    score = 95; // Bright green segment
+                    activeColor = '#22c55e';
+                    statusText = 'Safe';
+                    descText = 'No threats detected, this link appears safe.';
+                    break;
+                default:
+                    score = 75; // Light green segment
+                    activeColor = '#6BCF7F';
+                    statusText = 'Unknown';
+                    descText = 'Unable to determine safety level.';
+                    break;
+            }
+
+            console.log('Updating gauge - Verdict:', verdict, 'Score:', score, 'Color:', activeColor);
+
+            // Update segment colors
+            const redSeg = document.getElementById('red-segment');
+            const yellowSeg = document.getElementById('yellow-segment');
+            const lightGreenSeg = document.getElementById('light-green-segment');
+            const brightGreenSeg = document.getElementById('bright-green-segment');
+
+            if (redSeg && yellowSeg && lightGreenSeg && brightGreenSeg) {
+                // Reset all segments to inactive colors
+                redSeg.setAttribute('stroke', '#FFB3C6');
+                yellowSeg.setAttribute('stroke', '#FFF2CC');
+                lightGreenSeg.setAttribute('stroke', '#C8E6C9');
+                brightGreenSeg.setAttribute('stroke', '#A5D6A7');
+
+                // Activate the appropriate segment
+                if (score < 50) {
+                    redSeg.setAttribute('stroke', '#FF6B9D');
+                } else if (score < 70) {
+                    yellowSeg.setAttribute('stroke', '#FFD93D');
+                } else if (score < 90) {
+                    lightGreenSeg.setAttribute('stroke', '#6BCF7F');
+                } else {
+                    brightGreenSeg.setAttribute('stroke', '#22c55e');
+                }
+            }
+
+            // Calculate indicator position (same as TSX component)
+            const radius = 110;
+            const angle = Math.PI - (score / 100 * Math.PI);
+            const cx = 150 + radius * Math.cos(angle);
+            const cy = 140 - radius * Math.sin(angle);
+            
+            console.log('Position calculation - Score:', score, 'Angle:', angle, 'CX:', cx, 'CY:', cy);
+
+            // Update indicator dot position and color
+            const indicator = document.querySelector('.verdict-indicator');
+            if (indicator) {
+                indicator.setAttribute('cx', cx.toString());
+                indicator.setAttribute('cy', cy.toString());
+                indicator.setAttribute('stroke', activeColor);
+                console.log('Updated indicator position to:', cx, cy);
+            } else {
+                console.error('Could not find verdict-indicator element');
+            }
+
+            // Update status text
+            const statusEl = document.querySelector('.verdict-status');
+            const textEl = document.querySelector('.verdict-text');
+            if (statusEl) statusEl.textContent = statusText;
+            if (textEl) textEl.textContent = descText;
+        }
+
+        // Make updateVerdictGauge available globally
+        window.updateVerdictGauge = updateVerdictGauge;
 
         // Tab switching functionality
         function switchTab(tabName) {
