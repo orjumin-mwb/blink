@@ -31,6 +31,13 @@ type Config struct {
 	ScamGuardBaseURL   string        // ScamGuard API base URL
 	ScamGuardTimeout   time.Duration // Timeout for ScamGuard API calls
 	ScamGuardUserAgent string        // User-Agent header for ScamGuard API
+
+	// Deep Check configuration
+	DeepCheckAnalyzeJS       bool          // Enable JavaScript analysis
+	DeepCheckFetchExternalJS bool          // Fetch and analyze external JS files
+	DeepCheckJSTimeoutMs     time.Duration // Timeout for fetching JS files
+	DeepCheckMaxJSFiles      int           // Maximum number of external JS files to analyze
+	DeepCheckChunkSize       int           // Chunk size for streaming large files
 }
 
 // Load reads configuration from environment variables
@@ -52,6 +59,11 @@ func Load() *Config {
 		ScamGuardBaseURL:   getEnv("SCAMGUARD_BASE_URL", "http://10.164.46.88:8000"),
 		ScamGuardTimeout:   getEnvAsDuration("SCAMGUARD_TIMEOUT", 10000*time.Millisecond),
 		ScamGuardUserAgent: getEnv("SCAMGUARD_USER_AGENT", "ScamGuard-Playground/1.0 (Blink)"),
+		DeepCheckAnalyzeJS:       getEnvAsBool("DEEP_CHECK_ANALYZE_JS", true),
+		DeepCheckFetchExternalJS: getEnvAsBool("DEEP_CHECK_FETCH_EXTERNAL_JS", false),
+		DeepCheckJSTimeoutMs:     getEnvAsDuration("DEEP_CHECK_JS_TIMEOUT_MS", 5000*time.Millisecond),
+		DeepCheckMaxJSFiles:      getEnvAsInt("DEEP_CHECK_MAX_JS_FILES", 10),
+		DeepCheckChunkSize:       getEnvAsInt("DEEP_CHECK_CHUNK_SIZE", 65536), // 64KB
 	}
 }
 

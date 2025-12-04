@@ -30,3 +30,32 @@ func DefaultOptions() CheckOptions {
 		UserAgent:       "blink-checker/1.0",
 	}
 }
+
+// DeepCheckOptions holds options for deep checking
+type DeepCheckOptions struct {
+	// Inherit basic options
+	CheckOptions
+
+	// Runtime detection using headless browser
+	EnableRuntimeDetection bool
+	RuntimeTimeout         time.Duration
+
+	// Analysis options
+	AnalyzeJS         bool
+	FetchExternalJS   bool
+	MaxJSFiles        int
+	JSTimeout         time.Duration
+}
+
+// DefaultDeepCheckOptions returns DeepCheckOptions with sensible defaults
+func DefaultDeepCheckOptions() DeepCheckOptions {
+	return DeepCheckOptions{
+		CheckOptions:           DefaultOptions(),
+		EnableRuntimeDetection: true,
+		RuntimeTimeout:         5 * time.Second,
+		AnalyzeJS:             true,
+		FetchExternalJS:       true,
+		MaxJSFiles:           20,
+		JSTimeout:            3 * time.Second,
+	}
+}

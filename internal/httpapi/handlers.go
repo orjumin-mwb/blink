@@ -2,7 +2,9 @@ package httpapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/olegrjumin/blink/internal/checker"
 	"github.com/olegrjumin/blink/internal/service"
@@ -74,15 +76,18 @@ func checkHandler(svc *service.Service) http.HandlerFunc {
 
 // deepCheckRequest represents the JSON request body for /deep-check endpoint
 type deepCheckRequest struct {
-	URL             string `json:"url"`
-	FollowRedirects *bool  `json:"follow_redirects,omitempty"`
-	MaxRedirects    *int   `json:"max_redirects,omitempty"`
-	TimeoutMs       *int   `json:"timeout_ms,omitempty"`
+	URL                    string `json:"url"`
+	FollowRedirects        *bool  `json:"follow_redirects,omitempty"`
+	MaxRedirects           *int   `json:"max_redirects,omitempty"`
+	TimeoutMs              *int   `json:"timeout_ms,omitempty"`
+	// Runtime detection options
+	EnableRuntimeDetection *bool  `json:"runtime_detection,omitempty"`
+	RuntimeTimeoutMs       *int   `json:"runtime_timeout_ms,omitempty"`
 	// Note: Method is always GET for deep check
 }
 
 // deepCheckHandler handles POST requests to /deep-check
-// Performs a comprehensive URL check with HTML analysis
+// Performs JavaScript and browser API analysis with optional streaming
 func deepCheckHandler(svc *service.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Only accept POST requests
@@ -110,9 +115,74 @@ func deepCheckHandler(svc *service.Service) http.HandlerFunc {
 			return
 		}
 
-		// Build options from request (force GET method for deep check)
-		var opts *checker.CheckOptions
-		defaultOpts := checker.DefaultOptions()
+		// Check if client accepts streaming (SSE)
+		acceptHeader := r.Header.Get("Accept")
+		if acceptHeader == "text/event-stream" {
+			// Set headers for SSE
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Cache-Control", "no-cache")
+			w.Header().Set("Connection", "keep-alive")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+
+			// Create flusher
+			flusher, ok := w.(http.Flusher)
+			if !ok {
+				writeJSON(w, http.StatusInternalServerError, map[string]string{
+					"error": "Streaming not supported",
+				})
+				return
+			}
+
+			// Create channel for streaming results
+			resultChan := make(chan checker.StreamEvent, 10)
+
+			// Build deep check options
+			var opts *checker.DeepCheckOptions
+			defaultOpts := checker.DefaultDeepCheckOptions()
+			opts = &defaultOpts
+
+			if req.FollowRedirects != nil {
+				opts.FollowRedirects = *req.FollowRedirects
+			}
+			if req.MaxRedirects != nil {
+				opts.MaxRedirects = *req.MaxRedirects
+			}
+			if req.EnableRuntimeDetection != nil {
+				opts.EnableRuntimeDetection = *req.EnableRuntimeDetection
+			}
+			if req.RuntimeTimeoutMs != nil {
+				opts.RuntimeTimeout = time.Duration(*req.RuntimeTimeoutMs) * time.Millisecond
+			}
+
+			// Start streaming analysis
+			go svc.DeepCheckURLStreaming(r.Context(), req.URL, opts, resultChan)
+
+			// Stream events to client
+			for event := range resultChan {
+				// Marshal event data
+				data, err := json.Marshal(event.Data)
+				if err != nil {
+					continue
+				}
+
+				// Send SSE event
+				fmt.Fprintf(w, "event: %s\n", event.Stage)
+				fmt.Fprintf(w, "data: %s\n\n", data)
+				flusher.Flush()
+			}
+
+			// Send final done event
+			fmt.Fprintf(w, "event: done\n")
+			fmt.Fprintf(w, "data: {}\n\n")
+			flusher.Flush()
+
+			return
+		}
+
+		// Non-streaming response (backwards compatible)
+		// Build deep check options from request (force GET method for deep check)
+		var opts *checker.DeepCheckOptions
+		defaultOpts := checker.DefaultDeepCheckOptions()
 		opts = &defaultOpts
 		opts.Method = "GET" // Always use GET for deep check
 
@@ -121,6 +191,12 @@ func deepCheckHandler(svc *service.Service) http.HandlerFunc {
 		}
 		if req.MaxRedirects != nil {
 			opts.MaxRedirects = *req.MaxRedirects
+		}
+		if req.EnableRuntimeDetection != nil {
+			opts.EnableRuntimeDetection = *req.EnableRuntimeDetection
+		}
+		if req.RuntimeTimeoutMs != nil {
+			opts.RuntimeTimeout = time.Duration(*req.RuntimeTimeoutMs) * time.Millisecond
 		}
 		// Note: Timeout is handled by service layer
 

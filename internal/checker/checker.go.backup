@@ -221,49 +221,11 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 
 // DeepCheckURL performs JavaScript and browser API analysis on a URL
 // This is COMPLETELY SEPARATE from basic check - no status codes, redirects, TLS info
-// legacyDeepCheckResult is used internally for backwards compatibility during detection
-type legacyDeepCheckResult struct {
-	URL                 string
-	Timestamp           time.Time
-	BrowserAPIs         []DetectedAPI
-	DeviceAPIs          []DeviceCapability
-	PrivacyRisks        []PrivacyRisk
-	Trackers            []DetectedTracker
-	JSLibraries         []JSLibrary
-	Technologies        []Technology
-	SecurityAssessments []SecurityAssessment
-	Images              []Image
-	OutgoingLinks       []OutgoingLink
-	ExternalScripts     []string
-	Errors              []string
-	AnalysisComplete    bool
-	ScriptsAnalyzed     int
-
-	// Additional data for scoring context
-	HTMLContent         string
-	Forms               []FormInfo
-	HTMLMetadata        *HTMLMetadata
-	ImageAnalysis       *ImageAnalysis
-	RuntimeAnalysis     *RuntimeResult
-	SecurityCheck       *SecurityCheckResult
-	Fingerprinting      *FingerprintAnalysis
-	AnalysisDuration    string
-}
-
-// SecurityAssessment represents security analysis for a technology (legacy)
-type SecurityAssessment struct {
-	Technology      string   `json:"technology"`
-	Version         string   `json:"version,omitempty"`
-	RiskLevel       string   `json:"risk_level"`
-	Vulnerabilities []string `json:"vulnerabilities"`
-	Recommendations []string `json:"recommendations"`
-}
-
 func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts DeepCheckOptions) *DeepCheckResult {
 	startTime := time.Now()
 
-	// Initialize legacy result for internal use
-	result := &legacyDeepCheckResult{
+	// Initialize result
+	result := &DeepCheckResult{
 		URL:              rawURL,
 		Timestamp:        startTime,
 		BrowserAPIs:      []DetectedAPI{},
@@ -285,7 +247,7 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts DeepChec
 		result.Errors = append(result.Errors, "Invalid URL format")
 		result.AnalysisComplete = true
 		result.AnalysisDuration = fmt.Sprintf("%.2fs", time.Since(startTime).Seconds())
-		return c.buildUnifiedResponse(rawURL, startTime, result, nil, []string{})
+		return result
 	}
 
 	// Fetch HTML body with GET request (always use GET for deep check)
@@ -295,7 +257,7 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts DeepChec
 		result.Errors = append(result.Errors, fmt.Sprintf("Failed to fetch URL: %v", err))
 		result.AnalysisComplete = true
 		result.AnalysisDuration = fmt.Sprintf("%.2fs", time.Since(startTime).Seconds())
-		return c.buildUnifiedResponse(rawURL, startTime, result, nil, []string{})
+		return result
 	}
 	defer body.Close()
 
@@ -307,7 +269,7 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts DeepChec
 		result.Errors = append(result.Errors, fmt.Sprintf("Failed to read response body: %v", err))
 		result.AnalysisComplete = true
 		result.AnalysisDuration = fmt.Sprintf("%.2fs", time.Since(startTime).Seconds())
-		return c.buildUnifiedResponse(rawURL, startTime, result, nil, []string{})
+		return result
 	}
 
 	htmlContent := string(bodyBytes)
@@ -364,10 +326,6 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts DeepChec
 
 	// Extract forms for security analysis
 	formsForSecurity := securityFormsDetector.extractForms(htmlContent)
-
-	// Store HTML and forms for context-aware scoring
-	result.HTMLContent = htmlContent
-	result.Forms = formsForSecurity
 
 	// Perform comprehensive security analysis
 	result.SecurityCheck = c.performSecurityAnalysis(
@@ -514,145 +472,11 @@ func (c *Checker) DeepCheckURL(ctx context.Context, rawURL string, opts DeepChec
 		}
 	}
 
-	// Convert to unified format using ResponseBuilder and Aggregator
-	unifiedResult := c.buildUnifiedResponse(rawURL, startTime, result, resp.Header, externalScripts)
+	// Mark analysis as complete
+	result.AnalysisComplete = true
+	result.AnalysisDuration = fmt.Sprintf("%.2fs", time.Since(startTime).Seconds())
 
-	return unifiedResult
-}
-
-// buildUnifiedResponse converts legacy detection results to unified format
-func (c *Checker) buildUnifiedResponse(targetURL string, startTime time.Time, legacyResult *legacyDeepCheckResult, headers http.Header, externalScripts []string) *DeepCheckResult {
-	builder := NewResponseBuilder(targetURL)
-	builder.SetAnalysisDuration(time.Since(startTime))
-	aggregator := builder.GetAggregator()
-
-	// Convert and aggregate technologies
-	unifiedTech := c.techDetector.ConvertToUnified(legacyResult.Technologies)
-	for _, tech := range unifiedTech {
-		aggregator.AddTechnology(tech.Name, tech, "static")
-	}
-
-	// Convert and aggregate trackers
-	trackerDetector := NewTrackerDetector()
-	unifiedTrackers := trackerDetector.ConvertToUnified(legacyResult.Trackers)
-	for _, tracker := range unifiedTrackers {
-		aggregator.AddTracker(tracker.Name, tracker, "static")
-	}
-
-	// Convert and aggregate browser APIs
-	browserAPIDetector := NewBrowserAPIDetector()
-	unifiedAPIs := browserAPIDetector.ConvertToUnified(legacyResult.BrowserAPIs, false)
-	for _, api := range unifiedAPIs {
-		aggregator.AddAPI(api.Name, api, "static")
-	}
-
-	// If runtime analysis was performed, add runtime detections
-	if legacyResult.RuntimeAnalysis != nil {
-		// Add runtime trackers
-		if c.runtimeDetector != nil {
-			networkReqs := make([]string, 0, len(legacyResult.RuntimeAnalysis.NetworkRequests))
-			for _, req := range legacyResult.RuntimeAnalysis.NetworkRequests {
-				networkReqs = append(networkReqs, req)
-			}
-
-			runtimeTrackers := c.runtimeDetector.ConvertTrackersToUnified(
-				legacyResult.RuntimeAnalysis.Trackers,
-				networkReqs,
-			)
-			for _, tracker := range runtimeTrackers {
-				aggregator.AddTracker(tracker.Name, tracker, "runtime")
-			}
-
-			// Add runtime-executed APIs
-			if len(legacyResult.RuntimeAnalysis.ExecutedAPIs) > 0 {
-				runtimeAPIs := c.runtimeDetector.ConvertAPIsToUnified(legacyResult.RuntimeAnalysis.ExecutedAPIs)
-				for _, api := range runtimeAPIs {
-					aggregator.AddAPI(api.Name, api, "runtime")
-				}
-			}
-		}
-	}
-
-	// Set security data
-	if legacyResult.SecurityCheck != nil {
-		builder.SetSecurityIssues(legacyResult.SecurityCheck)
-	}
-
-	// Set context data for improved scoring
-	if headers != nil && legacyResult.HTMLContent != "" {
-		builder.SetContextData(headers, legacyResult.HTMLContent, legacyResult.Forms)
-	}
-
-	// TODO: Check for security.txt in the future
-	// For now, set to false
-	builder.SetSecurityTxt(false)
-
-	// Build page info from legacy data
-	pageInfo := &PageInfo{
-		Metadata: legacyResult.HTMLMetadata,
-		Resources: &PageResources{
-			Scripts: &ScriptInfo{
-				External:     len(externalScripts),
-				ExternalURLs: externalScripts,
-				Inline:       legacyResult.ScriptsAnalyzed,
-			},
-			Images: &ImageInfo{
-				Total:  len(legacyResult.Images),
-				Images: legacyResult.Images,
-			},
-			Links: &LinkInfo{
-				Internal:        0,
-				External:        len(legacyResult.OutgoingLinks),
-				Links:           legacyResult.OutgoingLinks,
-				ExternalDomains: []string{},
-			},
-		},
-	}
-
-	// Populate image info from image analysis
-	if legacyResult.ImageAnalysis != nil {
-		pageInfo.Resources.Images.LazyLoaded = legacyResult.ImageAnalysis.LazyLoadedCount
-		pageInfo.Resources.Images.MissingAlt = len(legacyResult.ImageAnalysis.MissingAlt)
-		pageInfo.Resources.Images.Formats = legacyResult.ImageAnalysis.Formats
-	}
-
-	// Extract external domains from links
-	externalDomains := make(map[string]bool)
-	for _, link := range legacyResult.OutgoingLinks {
-		parsedURL, err := url.Parse(link.AbsoluteURL)
-		if err == nil && parsedURL.Host != "" {
-			externalDomains[parsedURL.Host] = true
-		}
-	}
-	domains := make([]string, 0, len(externalDomains))
-	for domain := range externalDomains {
-		domains = append(domains, domain)
-	}
-	pageInfo.Resources.Links.ExternalDomains = domains
-
-	builder.SetPageInfo(pageInfo)
-
-	// Build network data if available
-	if legacyResult.RuntimeAnalysis != nil && len(legacyResult.RuntimeAnalysis.NetworkRequests) > 0 {
-		networkData := &NetworkData{
-			Requests:        []NetworkRequest{},
-			ExternalDomains: []string{},
-		}
-
-		// Convert network requests
-		for _, req := range legacyResult.RuntimeAnalysis.NetworkRequests {
-			networkData.Requests = append(networkData.Requests, NetworkRequest{
-				URL:    req,
-				Method: "GET",
-				Type:   "unknown",
-			})
-		}
-
-		builder.SetNetworkData(networkData)
-	}
-
-	// Build and return unified result
-	return builder.Build()
+	return result
 }
 
 // extractInlineScripts extracts inline JavaScript from HTML
@@ -901,10 +725,6 @@ func (c *Checker) performSecurityAnalysis(
 	authDetector := NewSecurityAuthDetector()
 	authIssues := authDetector.Detect(html, pageURL, forms, inlineScripts)
 	allIssues = append(allIssues, authIssues...)
-
-	cryptoDetector := NewSecurityCryptoDetector()
-	cryptoIssues := cryptoDetector.Detect(html, inlineScripts)
-	allIssues = append(allIssues, cryptoIssues...)
 
 	// Calculate context-aware security score
 	result.SecurityScore = c.calculateContextAwareScore(allIssues, context)
