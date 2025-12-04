@@ -6,6 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Blink is a Go-based link checker API service that validates URLs, follows redirects, checks TLS certificates, and provides detailed timing information. The service exposes an HTTP API for checking link health.
 
+## IMPORTANT: Template Changes Require Server Restart
+
+**⚠️ CRITICAL:** HTML templates in `internal/httpapi/templates/` are embedded into the Go binary using `//go:embed` directives. This means:
+
+1. **Any changes to HTML template files will NOT take effect until the server is restarted**
+2. The templates are compiled into the executable at build time
+3. You must stop and restart the server after modifying templates
+
+### How to restart after template changes:
+```bash
+# Kill the running server (Ctrl+C or kill the process)
+# Then restart:
+go run cmd/linkchecker-api/main.go
+```
+
+This applies to:
+- `internal/httpapi/templates/ui_form.html`
+- `internal/httpapi/templates/ui_result.html`
+- Any other embedded templates
+
 ## Build and Development Commands
 
 ### Run the service

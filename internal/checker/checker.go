@@ -739,9 +739,13 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	startTime := time.Now()
 
 	// Send initial event
-	sendEvent(ctx, events, "analysis_started", "Starting JavaScript analysis", map[string]string{
+	sendEvent(ctx, events, "analysis_started", "Starting deep analysis", map[string]string{
 		"url":       rawURL,
 		"timestamp": startTime.Format(time.RFC3339),
+	})
+	sendEvent(ctx, events, "analysis_progress", "Initializing...", map[string]interface{}{
+		"progress": 5,
+		"step":     "Validating URL",
 	})
 
 	// Validate URL
@@ -753,8 +757,12 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 
 	// Fetch HTML body
 	sendEvent(ctx, events, "fetching", "Fetching page content", nil)
+	sendEvent(ctx, events, "analysis_progress", "Fetching page...", map[string]interface{}{
+		"progress": 10,
+		"step":     "Fetching page content",
+	})
 	opts.Method = "GET"
-	_, body, err := c.client.DoWithBody(ctx, opts.Method, rawURL, opts.UserAgent)
+	resp, body, err := c.client.DoWithBody(ctx, opts.Method, rawURL, opts.UserAgent)
 	if err != nil {
 		sendEvent(ctx, events, "error", "Failed to fetch URL", map[string]string{"error": err.Error()})
 		return
@@ -772,24 +780,83 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 
 	htmlContent := string(bodyBytes)
 
+	// Progress: 20% - HTML parsing
+	sendEvent(ctx, events, "analysis_progress", "Parsing HTML...", map[string]interface{}{
+		"progress": 20,
+		"step":     "Parsing page structure",
+	})
+
+	// Parse HTML for links and images
+	htmlParser, err := NewHTMLParser(rawURL)
+	if err == nil {
+		parseResult, err := htmlParser.Parse(bytes.NewReader(bodyBytes))
+		if err == nil && parseResult != nil {
+			// Emit links found
+			if len(parseResult.Links) > 0 {
+				sendEvent(ctx, events, "links_found", "Links discovered", map[string]interface{}{
+					"links": parseResult.Links,
+					"count": len(parseResult.Links),
+				})
+			}
+
+			// Emit images found
+			if len(parseResult.Images) > 0 {
+				sendEvent(ctx, events, "images_found", "Images discovered", map[string]interface{}{
+					"images": parseResult.Images,
+					"count":  len(parseResult.Images),
+				})
+			}
+		}
+	}
+
+	// Progress: 30% - Technology detection
+	sendEvent(ctx, events, "analysis_progress", "Detecting technologies...", map[string]interface{}{
+		"progress": 30,
+		"step":     "Analyzing technology stack",
+	})
+
+	// Detect technologies
+	var cookieString string
+	if cookieHeader := resp.Header.Get("Set-Cookie"); cookieHeader != "" {
+		cookieString = cookieHeader
+	}
+	technologies := c.techDetector.DetectTechnologies(htmlContent, resp.Header, cookieString)
+	for _, tech := range technologies {
+		sendEvent(ctx, events, "technology_found", "Technology detected", map[string]interface{}{
+			"name":       tech.Name,
+			"category":   tech.Category,
+			"version":    tech.Version,
+			"confidence": tech.Confidence,
+		})
+	}
+
+	// Progress: 40% - Tracker detection
+	sendEvent(ctx, events, "analysis_progress", "Analyzing trackers...", map[string]interface{}{
+		"progress": 40,
+		"step":     "Detecting tracking services",
+	})
+
 	// Initialize detectors
 	browserAPIDetector := NewBrowserAPIDetector()
 	trackerDetector := NewTrackerDetector()
 
 	// Detect trackers in HTML
-	sendEvent(ctx, events, "analyzing", "Analyzing trackers", nil)
 	trackers := trackerDetector.DetectInHTML(htmlContent)
 	for _, tracker := range trackers {
 		sendEvent(ctx, events, "tracker_found", "Tracker detected", tracker)
 	}
 
-	// Extract and analyze inline scripts
-	sendEvent(ctx, events, "analyzing", "Analyzing inline scripts", nil)
-	inlineScripts := extractInlineScripts(htmlContent)
+	// Progress: 50% - Script analysis
+	sendEvent(ctx, events, "analysis_progress", "Analyzing scripts...", map[string]interface{}{
+		"progress": 50,
+		"step":     "Analyzing inline scripts",
+	})
 
+	// Extract and analyze inline scripts
+	inlineScripts := extractInlineScripts(htmlContent)
 	for i, script := range inlineScripts {
 		sendEvent(ctx, events, "analyzing_script", fmt.Sprintf("Analyzing inline script %d", i+1), map[string]string{
-			"type": "inline",
+			"type":  "inline",
 			"index": strconv.Itoa(i + 1),
 		})
 
@@ -809,15 +876,103 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	// Extract external scripts
 	externalScripts := extractExternalScripts(htmlContent)
 	if len(externalScripts) > 0 {
-		sendEvent(ctx, events, "external_scripts", "External scripts found", map[string]interface{}{
-			"count":   len(externalScripts),
-			"scripts": externalScripts,
+		// Emit as network requests
+		var requests []map[string]interface{}
+		for _, scriptURL := range externalScripts {
+			requests = append(requests, map[string]interface{}{
+				"url":    scriptURL,
+				"method": "GET",
+				"type":   "script",
+			})
+		}
+		sendEvent(ctx, events, "requests_found", "Network requests discovered", map[string]interface{}{
+			"requests": requests,
+			"count":    len(requests),
 		})
 	}
 
+	// Progress: 70% - Security analysis
+	sendEvent(ctx, events, "analysis_progress", "Analyzing security...", map[string]interface{}{
+		"progress": 70,
+		"step":     "Running security checks",
+	})
+
+	// Perform security analysis
+	securityFormsDetector := NewSecurityFormsDetector()
+	securityCookieDetector := NewSecurityCookieDetector()
+	securityHeadersDetector := NewSecurityHeadersDetector()
+	securityCORSDetector := NewSecurityCORSDetector()
+
+	// Parse cookies from Set-Cookie headers
+	var cookies []*http.Cookie
+	if setCookieHeaders := resp.Header["Set-Cookie"]; len(setCookieHeaders) > 0 {
+		for _, cookieHeader := range setCookieHeaders {
+			if cookie := parseCookieString(cookieHeader); cookie != nil {
+				cookies = append(cookies, cookie)
+			}
+		}
+	}
+
+	// Extract forms
+	forms := securityFormsDetector.extractForms(htmlContent)
+
+	// Run security analysis
+	securityResult := c.performSecurityAnalysis(
+		htmlContent,
+		rawURL,
+		resp.Header,
+		cookies,
+		securityFormsDetector,
+		securityCookieDetector,
+		securityHeadersDetector,
+		securityCORSDetector,
+		inlineScripts,
+		externalScripts,
+		forms,
+	)
+
+	// Emit security issues by severity
+	if securityResult != nil {
+		for _, issue := range securityResult.Critical {
+			sendEvent(ctx, events, "security_issue_found", "Security issue detected", map[string]interface{}{
+				"security_issue": issue,
+			})
+		}
+		for _, issue := range securityResult.High {
+			sendEvent(ctx, events, "security_issue_found", "Security issue detected", map[string]interface{}{
+				"security_issue": issue,
+			})
+		}
+		for _, issue := range securityResult.Medium {
+			sendEvent(ctx, events, "security_issue_found", "Security issue detected", map[string]interface{}{
+				"security_issue": issue,
+			})
+		}
+		for _, issue := range securityResult.Low {
+			sendEvent(ctx, events, "security_issue_found", "Security issue detected", map[string]interface{}{
+				"security_issue": issue,
+			})
+		}
+
+		// Emit security score
+		sendEvent(ctx, events, "security_score", "Security score calculated", map[string]interface{}{
+			"score":          securityResult.SecurityScore,
+			"total_issues":   securityResult.TotalIssues,
+			"critical_count": securityResult.CriticalCount,
+			"high_count":     securityResult.HighCount,
+			"medium_count":   securityResult.MediumCount,
+			"low_count":      securityResult.LowCount,
+		})
+	}
+
+	// Progress: 90% - Finalizing
+	sendEvent(ctx, events, "analysis_progress", "Finalizing analysis...", map[string]interface{}{
+		"progress": 90,
+		"step":     "Analyzing privacy risks",
+	})
+
 	// Analyze fingerprinting
 	allAPIs := []DetectedAPI{}
-	// Collect all APIs for fingerprinting analysis
 	for _, script := range inlineScripts {
 		apis := browserAPIDetector.Detect(script, "inline")
 		allAPIs = append(allAPIs, apis...)
@@ -832,6 +987,12 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	for _, risk := range privacyRisks {
 		sendEvent(ctx, events, "privacy_risk", "Privacy risk detected", risk)
 	}
+
+	// Progress: 100% - Complete
+	sendEvent(ctx, events, "analysis_progress", "Complete", map[string]interface{}{
+		"progress": 100,
+		"step":     "Analysis complete",
+	})
 
 	// Send completion event
 	duration := time.Since(startTime)

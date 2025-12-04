@@ -67,9 +67,10 @@
             color: white !important;
         }
 
-        .stage-complete {
+        .progress-stage.stage-complete {
             background-color: #0059FF !important;
             color: white !important;
+            border-color: #0059FF !important;
         }
 
         .stage-error {
@@ -249,27 +250,10 @@
                         </button>
                     </div>
                 </form>
-                <!-- Progress Indicators -->
-                <div id="progress-container" class="bg-white rounded-lg shadow-md p-6 mb-4 mt-4 hidden">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="text-sm font-semibold text-gray-700 font-body">Progress</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span id="stage-dns" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
-                            <span id="stage-tcp" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
-                            <span id="stage-tls" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TLS</span>
-                            <span id="stage-response" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Response</span>
-                            <span id="stage-scamguard" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">AI</span>
-                        </div>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div id="progress-bar" class="progress-bar bg-primary-blue h-2 rounded-full" style="width: 0%"></div>
-                    </div>
-                    <div id="progress-message" class="text-sm text-gray-600 mt-2 font-body"></div>
-                </div>
             </div>
         </div>
         </div>
-        
+
         <!-- Results Section (appears below the form) -->
         <div id="results-section" class="hidden max-w-7xl mx-auto mt-12">
             <!-- Tab Navigation -->
@@ -285,21 +269,120 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Left Column (2/3 width) - Overview Tab -->
                 <div id="results-overview" class="tab-content lg:col-span-2 bg-white rounded-lg shadow-md min-h-[500px] min-w-[52rem]">
-                   <!-- ScamGuard Analysis Stream -->
-                    <div id="scamguard-stream" class="hidden p-6 mb-4 animate-fadeIn">
-                        <h2 class="text-xl font-bold text-gray-800 mb-3 font-heading">AI Security Analysis</h2>
-                        <div id="scamguard-text" class="text-sm text-gray-700 markdown-content font-body"></div>
-                    </div>
+                    <div class="p-6">
+                        <!-- Progress Indicators (inside Overview tab) -->
+                        <div id="progress-container" class="mb-6 hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="text-sm font-semibold text-gray-700 font-body">Progress</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <span id="stage-dns" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
+                                    <span id="stage-tcp" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
+                                    <span id="stage-tls" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TLS</span>
+                                    <span id="stage-response" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Response</span>
+                                    <span id="stage-scamguard" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">AI</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="progress-bar bg-primary-blue h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div id="progress-message" class="text-sm text-gray-600 mt-2 font-body"></div>
+                        </div>
 
-                    <!-- Detailed Results (appears at the end) -->
-                    <div id="results"></div>
+                        <!-- ScamGuard Analysis Stream -->
+                        <div id="scamguard-stream" class="hidden mb-4 animate-fadeIn">
+                            <h2 class="text-xl font-bold text-gray-800 mb-3 font-heading">AI Security Analysis</h2>
+                            <div id="scamguard-text" class="text-sm text-gray-700 markdown-content font-body"></div>
+                        </div>
+
+                        <!-- Detailed Results (appears at the end) -->
+                        <div id="results"></div>
+                    </div>
                 </div>
 
                 <!-- Left Column (2/3 width) - Advanced Tab -->
                 <div id="results-advanced" class="tab-content hidden lg:col-span-2 bg-white rounded-lg shadow-md min-h-[500px] min-w-[52rem]">
                     <div class="p-6">
-                        <div class="text-sm font-bold text-gray-800 mb-3 font-heading">Advanced Analysis</div>
-                        <div class="text-sm text-gray-600 font-body">Advanced features coming soon...</div>
+                        <!-- Deep Check Progress indicator (inside Advanced tab) -->
+                        <div id="deep-check-progress" class="mb-6 hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="text-sm font-semibold text-gray-700 font-body">Deep Analysis Progress</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <span id="stage-parsing" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Parsing</span>
+                                    <span id="stage-technologies" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Technologies</span>
+                                    <span id="stage-trackers" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Trackers</span>
+                                    <span id="stage-scripts" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Scripts</span>
+                                    <span id="stage-security" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Security</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="deep-check-bar" class="bg-primary-blue h-2 rounded-full transition-all" style="width: 0%"></div>
+                            </div>
+                            <div id="deep-check-status" class="text-sm text-gray-600 mt-2 font-body">Initializing...</div>
+                        </div>
+
+                        <!-- Results sections -->
+                        <div id="deep-check-results" class="space-y-6">
+
+                            <!-- Outgoing Links Section -->
+                            <div id="section-links" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Outgoing Links</h3>
+                                <div id="links-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                                <div id="links-count" class="text-xs text-gray-500 mt-2 font-body"></div>
+                            </div>
+
+                            <!-- Images Section -->
+                            <div id="section-images" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Images</h3>
+                                <div id="images-list" class="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto"></div>
+                                <div id="images-count" class="text-xs text-gray-500 mt-2 font-body"></div>
+                            </div>
+
+                            <!-- Network Requests Section -->
+                            <div id="section-requests" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Network Requests</h3>
+                                <div id="requests-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                                <div id="requests-count" class="text-xs text-gray-500 mt-2 font-body"></div>
+                            </div>
+
+                            <!-- Trackers Section -->
+                            <div id="section-trackers" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Trackers & Analytics</h3>
+                                <div id="trackers-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                                <div id="trackers-count" class="text-xs text-gray-500 mt-2 font-body"></div>
+                            </div>
+
+                            <!-- Technologies Section -->
+                            <div id="section-technologies" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Technologies</h3>
+                                <div id="technologies-list" class="flex flex-wrap gap-2"></div>
+                                <div id="technologies-count" class="text-xs text-gray-500 mt-2 font-body"></div>
+                            </div>
+
+                            <!-- Security Report Section -->
+                            <div id="section-security" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Security Report</h3>
+                                <div id="security-score" class="mb-4"></div>
+                                <div id="security-issues" class="space-y-3">
+                                    <div id="issues-critical" class="hidden">
+                                        <h4 class="text-sm font-semibold text-red-600 mb-2 font-body">Critical</h4>
+                                        <div id="critical-list" class="space-y-2"></div>
+                                    </div>
+                                    <div id="issues-high" class="hidden">
+                                        <h4 class="text-sm font-semibold text-orange-600 mb-2 font-body">High</h4>
+                                        <div id="high-list" class="space-y-2"></div>
+                                    </div>
+                                    <div id="issues-medium" class="hidden">
+                                        <h4 class="text-sm font-semibold text-yellow-600 mb-2 font-body">Medium</h4>
+                                        <div id="medium-list" class="space-y-2"></div>
+                                    </div>
+                                    <div id="issues-low" class="hidden">
+                                        <h4 class="text-sm font-semibold text-blue-600 mb-2 font-body">Low</h4>
+                                        <div id="low-list" class="space-y-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
@@ -373,40 +456,40 @@
                 </div>
                 <!-- Screenshot Section -->
                 <div id="screenshot-section" class="hidden bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
-                     
-                    <h4 class="text-lg font-bold text-gray-700 mb-2 mt-4 font-heading text-center">Screenshot</h4>
+                    <div class="relative rounded-lg overflow-hidden shadow-2xl" style="width: 100%; aspect-ratio: 16/10; padding: 5px; background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(255,255,255,1) 100%);">
+                        <div class="relative w-full h-full rounded-md overflow-hidden bg-gray-100">
+                            <!-- BlurHash Canvas (blurred placeholder) -->
+                            <canvas
+                                id="blurhash-canvas"
+                                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                                style="opacity: 0; filter: blur(20px);"
+                            ></canvas>
 
-                    <div class="relative bg-white p-4 rounded-xl shadow-md" style="width: 100%; background: linear-gradient(to bottom, #0d3ecb, #305bd8);">
-                        <!-- BlurHash Canvas (blurred placeholder) -->
-                        <canvas
-                            id="blurhash-canvas"
-                            class="w-full rounded-lg transition-opacity duration-500"
-                            style="opacity: 0; filter: blur(20px); aspect-ratio: 16/10;"
-                        ></canvas>
+                            <!-- Actual Screenshot Image (sharp) -->
+                            <img
+                                id="screenshot-img"
+                                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                                style="opacity: 0;"
+                                alt="Page preview"
+                            />
 
-                        <!-- Actual Screenshot Image (sharp) -->
-                        <img
-                            id="screenshot-img"
-                            class="absolute top-4 left-4 right-4 bottom-4 w-full rounded-lg shadow-sm transition-opacity duration-500"
-                            style="opacity: 0; aspect-ratio: 16/10; width: calc(100% - 2rem);"
-                            alt="Screenshot"
-                        />
+                            <!-- Gradient Overlay from bottom -->
+                            <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style="background: linear-gradient(to top, rgba(0,0,0,0.05) 0%, transparent 100%);"></div>
 
                         
-                        <!-- Loading Indicator -->
-                        <div id="screenshot-loading"
-                             class="absolute inset-0 flex items-center justify-center bg-gray-100">
-                            <div class="flex flex-col items-center">
-                                <svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span class="mt-2 text-xs text-gray-600">Capturing...</span>
+                            <!-- Loading Indicator -->
+                            <div id="screenshot-loading"
+                                 class="absolute inset-0 flex items-center justify-center bg-gray-100">
+                                <div class="flex flex-col items-center">
+                                    <svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span class="mt-2 text-xs text-gray-600">Capturing...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div id="screenshot-info" class="text-xs text-gray-500 mt-2 font-body" style="display: none;"></div>
                     
                 </div>
             </div>
@@ -441,8 +524,28 @@
             // Store URL for screenshot functionality
             currentAnalysisURL = url;
 
+            // Get current tab from URL params or default to overview
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentTab = urlParams.get('tab') || 'overview';
+
+            console.log('=== handleURLSubmission ===');
+            console.log('URL:', url);
+            console.log('Current tab:', currentTab);
+
+            // Update URL with query parameters
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('url', url);
+            newUrl.searchParams.set('tab', currentTab);
+            window.history.replaceState({}, '', newUrl.toString());
+            console.log('URL updated to:', window.location.href);
+
             // Show results section below the form
             document.getElementById('results-section').classList.remove('hidden');
+
+            // Restore tab state after results section is shown (if different from overview)
+            if (currentTab === 'advanced') {
+                switchTab('advanced', true); // true = skip initial deep check
+            }
 
             // Clear previous results and hide sections
             document.getElementById('results').innerHTML = '';
@@ -458,7 +561,7 @@
                 const progressContainer = document.getElementById('progress-container');
                 const rect = progressContainer.getBoundingClientRect();
                 const offset = window.pageYOffset + rect.top - 50; // Extra 50px scroll
-                
+
                 window.scrollTo({
                     top: offset,
                     behavior: 'smooth'
@@ -502,6 +605,52 @@
             if (eventSource) {
                 eventSource.close();
             }
+
+            // Always reset deep check when new URL is submitted
+            console.log('Resetting deep check for new URL:', url);
+
+            // Reset deep check state to allow restart
+            deepCheckRunning = false;
+
+            // Cancel existing deep check request
+            if (deepCheckAbortController) {
+                console.log('Aborting previous deep check request');
+                deepCheckAbortController.abort();
+                deepCheckAbortController = null;
+            }
+
+            // Reset deep check data
+            deepCheckData = {
+                links: [], images: [], requests: [], trackers: [],
+                technologies: [], securityIssues: { critical: [], high: [], medium: [], low: [] }
+            };
+
+            // Hide deep check progress
+            document.getElementById('deep-check-progress').classList.add('hidden');
+
+            // Reset stage badges
+            ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
+                const el = document.getElementById('stage-' + stage);
+                if (el) {
+                    el.classList.remove('stage-complete', 'stage-active', 'stage-error');
+                }
+            });
+
+            // Hide all sections
+            ['links', 'images', 'requests', 'trackers', 'technologies', 'security'].forEach(section => {
+                document.getElementById('section-' + section).classList.add('hidden');
+            });
+
+            // Clear all lists
+            document.getElementById('links-list').innerHTML = '';
+            document.getElementById('images-list').innerHTML = '';
+            document.getElementById('requests-list').innerHTML = '';
+            document.getElementById('trackers-list').innerHTML = '';
+            document.getElementById('technologies-list').innerHTML = '';
+            ['critical', 'high', 'medium', 'low'].forEach(severity => {
+                document.getElementById(severity + '-list').innerHTML = '';
+                document.getElementById('issues-' + severity).classList.add('hidden');
+            });
 
             // Create EventSource for SSE
             const params = new URLSearchParams({ url: url });
@@ -738,6 +887,14 @@
             });
 
             eventSource.addEventListener('complete', function(e) {
+                // Check if we should start deep check after basic check completes
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentTab = urlParams.get('tab');
+
+                if (currentTab === 'advanced' && currentAnalysisURL && !deepCheckRunning) {
+                    console.log('Basic check complete, starting deep check for advanced tab');
+                    setTimeout(() => startDeepCheck(currentAnalysisURL), 500);
+                }
                 // Parse the complete event data
                 try {
                     console.log('Complete event received:', e.data);
@@ -940,11 +1097,7 @@
                             img.src = data.base64_data;
                             if (loading) loading.style.display = 'none';
 
-                            // Show info
-                            if (info && data.capture_time_ms) {
-                                info.textContent = `Screenshot captured in ${data.capture_time_ms}ms`;
-                                info.style.display = 'block';
-                            }
+                            // Capture time removed - no longer displayed
 
                             // Fade in sharp image, fade out blur
                             setTimeout(() => {
@@ -1116,8 +1269,9 @@
         // Make updateVerdictGauge available globally
         window.updateVerdictGauge = updateVerdictGauge;
 
+
         // Tab switching functionality
-        function switchTab(tabName) {
+        function switchTab(tabName, skipDeepCheck = false) {
             // Remove active class from all tab buttons
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.classList.remove('active');
@@ -1133,11 +1287,506 @@
 
             // Show the selected tab content
             document.getElementById('results-' + tabName).classList.remove('hidden');
+
+            // Update URL query parameters
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('tab', tabName);
+            if (currentAnalysisURL) {
+                newUrl.searchParams.set('url', currentAnalysisURL);
+            }
+            window.history.replaceState({}, '', newUrl.toString());
+
+            // Start deep check if switching to advanced tab
+            if (tabName === 'advanced' && currentAnalysisURL && !skipDeepCheck && !deepCheckRunning) {
+                console.log('Tab switched to advanced, starting deep check for:', currentAnalysisURL);
+                setTimeout(() => startDeepCheck(currentAnalysisURL), 100);
+            }
         }
 
         // Add event listeners to tab buttons
         document.getElementById('tab-overview').addEventListener('click', () => switchTab('overview'));
         document.getElementById('tab-advanced').addEventListener('click', () => switchTab('advanced'));
+
+        // Deep Check Streaming
+        let deepCheckAbortController = null; // Changed from deepCheckEventSource
+        let deepCheckRunning = false;
+
+        // Track data for each section
+        let deepCheckData = {
+            links: [],
+            images: [],
+            requests: [],
+            trackers: [],
+            technologies: [],
+            securityIssues: { critical: [], high: [], medium: [], low: [] }
+        };
+
+        function startDeepCheck(url) {
+            console.log('=== startDeepCheck called ===');
+            console.log('URL:', url);
+            console.log('deepCheckRunning:', deepCheckRunning);
+
+            if (deepCheckRunning || !url) {
+                console.log('Returning early - deepCheckRunning:', deepCheckRunning, 'url:', url);
+                return;
+            }
+
+            console.log('Starting deep check...');
+            deepCheckRunning = true;
+
+            // Reset data
+            deepCheckData = {
+                links: [], images: [], requests: [], trackers: [],
+                technologies: [], securityIssues: { critical: [], high: [], medium: [], low: [] }
+            };
+
+            // Show progress
+            document.getElementById('deep-check-progress').classList.remove('hidden');
+            document.getElementById('deep-check-bar').style.width = '0%';
+            document.getElementById('deep-check-status').textContent = 'Initializing...';
+
+            // Reset stage badges
+            ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
+                const el = document.getElementById('stage-' + stage);
+                if (el) {
+                    el.classList.remove('stage-complete', 'stage-active', 'stage-error');
+                }
+            });
+
+            // Hide all sections initially
+            ['links', 'images', 'requests', 'trackers', 'technologies', 'security'].forEach(section => {
+                document.getElementById('section-' + section).classList.add('hidden');
+            });
+
+            // Clear all lists
+            document.getElementById('links-list').innerHTML = '';
+            document.getElementById('images-list').innerHTML = '';
+            document.getElementById('requests-list').innerHTML = '';
+            document.getElementById('trackers-list').innerHTML = '';
+            document.getElementById('technologies-list').innerHTML = '';
+            ['critical', 'high', 'medium', 'low'].forEach(severity => {
+                document.getElementById(severity + '-list').innerHTML = '';
+                document.getElementById('issues-' + severity).classList.add('hidden');
+            });
+
+            // Cancel any existing connection
+            if (deepCheckAbortController) {
+                console.log('Aborting existing deep check');
+                deepCheckAbortController.abort();
+            }
+
+            // Create new AbortController for this request
+            deepCheckAbortController = new AbortController();
+
+            // Create new EventSource for deep-check endpoint
+            const params = new URLSearchParams({ url: url });
+            // Use fetch with ReadableStream to handle SSE
+            fetch('/deep-check?' + params.toString(), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream'
+                },
+                body: JSON.stringify({ url: url }),
+                signal: deepCheckAbortController.signal // Add abort signal
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let currentEvent = '';
+
+                function processStream() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            console.log('Deep check stream completed');
+                            deepCheckRunning = false;
+                            deepCheckAbortController = null; // Clear controller on completion
+                            return;
+                        }
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                        for (const line of lines) {
+                            if (line.startsWith('event:')) {
+                                currentEvent = line.substring(6).trim();
+                            }
+                            else if (line.startsWith('data:')) {
+                                const eventData = line.substring(5).trim();
+                                if (eventData && currentEvent) {
+                                    try {
+                                        const data = JSON.parse(eventData);
+                                        // Create event object with stage and data
+                                        handleDeepCheckEvent({
+                                            stage: currentEvent,
+                                            data: data
+                                        });
+                                        currentEvent = ''; // Reset after handling
+                                    } catch (e) {
+                                        console.error('Failed to parse SSE data:', e, 'Event:', currentEvent, 'Data:', eventData);
+                                    }
+                                }
+                            }
+                        }
+
+                        processStream();
+                    }).catch(err => {
+                        // Check if it was aborted (not an error)
+                        if (err.name === 'AbortError') {
+                            console.log('Stream aborted (new URL entered)');
+                        } else {
+                            console.error('Stream error:', err);
+                        }
+                        deepCheckRunning = false;
+                    });
+                }
+
+                processStream();
+            }).catch(err => {
+                // Check if it was aborted (not an error)
+                if (err.name === 'AbortError') {
+                    console.log('Deep check was aborted (new URL entered)');
+                } else {
+                    console.error('Failed to start deep check:', err);
+                    document.getElementById('deep-check-status').textContent = 'Failed to start analysis';
+                }
+                deepCheckRunning = false;
+            });
+        }
+
+        function handleDeepCheckEvent(data) {
+            if (!data) return;
+
+            console.log('Deep check event:', data.stage, data.data);
+
+            // Handle different event types
+            if (data.stage === 'analysis_progress' && data.data) {
+                const progress = data.data.progress || 0;
+                const step = data.data.step || '';
+                document.getElementById('deep-check-bar').style.width = progress + '%';
+                if (step) {
+                    document.getElementById('deep-check-status').textContent = step;
+                }
+
+                // Update stage badges based on progress
+                if (progress >= 20) {
+                    // Parsing stage complete
+                    const parseEl = document.getElementById('stage-parsing');
+                    if (parseEl && !parseEl.classList.contains('stage-complete')) {
+                        parseEl.classList.add('stage-complete');
+                    }
+                }
+                if (progress >= 30 && progress < 40) {
+                    // Technologies stage active
+                    const techEl = document.getElementById('stage-technologies');
+                    if (techEl) {
+                        techEl.classList.add('stage-active');
+                    }
+                }
+                if (progress >= 40) {
+                    // Technologies complete
+                    const techEl = document.getElementById('stage-technologies');
+                    if (techEl) {
+                        techEl.classList.remove('stage-active');
+                        techEl.classList.add('stage-complete');
+                    }
+                }
+                if (progress >= 40 && progress < 50) {
+                    // Trackers stage active
+                    const trackerEl = document.getElementById('stage-trackers');
+                    if (trackerEl) {
+                        trackerEl.classList.add('stage-active');
+                    }
+                }
+                if (progress >= 50) {
+                    // Trackers complete
+                    const trackerEl = document.getElementById('stage-trackers');
+                    if (trackerEl) {
+                        trackerEl.classList.remove('stage-active');
+                        trackerEl.classList.add('stage-complete');
+                    }
+                }
+                if (progress >= 50 && progress < 70) {
+                    // Scripts stage active
+                    const scriptEl = document.getElementById('stage-scripts');
+                    if (scriptEl) {
+                        scriptEl.classList.add('stage-active');
+                    }
+                }
+                if (progress >= 70) {
+                    // Scripts complete
+                    const scriptEl = document.getElementById('stage-scripts');
+                    if (scriptEl) {
+                        scriptEl.classList.remove('stage-active');
+                        scriptEl.classList.add('stage-complete');
+                    }
+                }
+                if (progress >= 70 && progress < 100) {
+                    // Security stage active
+                    const secEl = document.getElementById('stage-security');
+                    if (secEl) {
+                        secEl.classList.add('stage-active');
+                    }
+                }
+                if (progress >= 100) {
+                    // Security complete
+                    const secEl = document.getElementById('stage-security');
+                    if (secEl) {
+                        secEl.classList.remove('stage-active');
+                        secEl.classList.add('stage-complete');
+                    }
+                }
+            }
+            else if (data.stage === 'links_found' && data.data && data.data.links) {
+                deepCheckData.links = data.data.links;
+                renderLinks();
+            }
+            else if (data.stage === 'images_found' && data.data && data.data.images) {
+                deepCheckData.images = data.data.images;
+                renderImages();
+            }
+            else if (data.stage === 'requests_found' && data.data && data.data.requests) {
+                deepCheckData.requests = data.data.requests;
+                renderRequests();
+            }
+            else if (data.stage === 'tracker_found' && data.data) {
+                deepCheckData.trackers.push(data.data);
+                renderTrackers();
+            }
+            else if (data.stage === 'technology_found' && data.data) {
+                deepCheckData.technologies.push(data.data);
+                renderTechnologies();
+            }
+            else if (data.stage === 'security_issue_found' && data.data && data.data.security_issue) {
+                const issue = data.data.security_issue;
+                const severity = (issue.severity || 'low').toLowerCase();
+                if (deepCheckData.securityIssues[severity]) {
+                    deepCheckData.securityIssues[severity].push(issue);
+                    renderSecurityIssues();
+                }
+            }
+            else if (data.stage === 'security_score' && data.data) {
+                renderSecurityScore(data.data);
+            }
+            else if (data.stage === 'analysis_complete') {
+                deepCheckRunning = false;
+                document.getElementById('deep-check-bar').style.width = '100%';
+                document.getElementById('deep-check-status').textContent = 'Analysis complete';
+
+                // Ensure all stage badges are marked complete and not active (fixes blinking)
+                ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
+                    const el = document.getElementById('stage-' + stage);
+                    if (el) {
+                        el.classList.remove('stage-active'); // Remove pulsing animation
+                        el.classList.add('stage-complete');
+                    }
+                });
+            }
+            else if (data.stage === 'error') {
+                deepCheckRunning = false;
+                const errorMsg = (data.data && data.data.error) || 'Analysis failed';
+                document.getElementById('deep-check-status').textContent = errorMsg;
+            }
+        }
+
+        function renderLinks() {
+            const container = document.getElementById('links-list');
+            const count = document.getElementById('links-count');
+            const section = document.getElementById('section-links');
+
+            if (deepCheckData.links.length === 0) return;
+
+            // Only show first 50 links for performance
+            const displayLinks = deepCheckData.links.slice(0, 50);
+
+            container.innerHTML = displayLinks.map(link => `
+                <div class="text-xs p-2 bg-gray-50 rounded hover:bg-gray-100">
+                    <a href="${link.absolute_url || link.href}" target="_blank" class="text-primary-blue hover:underline truncate block">
+                        ${link.text || link.href}
+                    </a>
+                    ${link.rel ? `<span class="text-gray-500 ml-2">(${link.rel})</span>` : ''}
+                </div>
+            `).join('');
+
+            count.textContent = `${deepCheckData.links.length} links found${deepCheckData.links.length > 50 ? ' (showing first 50)' : ''}`;
+            section.classList.remove('hidden');
+        }
+
+        function renderImages() {
+            const container = document.getElementById('images-list');
+            const count = document.getElementById('images-count');
+            const section = document.getElementById('section-images');
+
+            if (deepCheckData.images.length === 0) return;
+
+            // Only show first 20 images
+            const displayImages = deepCheckData.images.slice(0, 20);
+
+            container.innerHTML = displayImages.map(img => `
+                <div class="text-xs p-2 bg-gray-50 rounded">
+                    <div class="font-medium truncate">${img.src}</div>
+                    ${img.alt ? `<div class="text-gray-500">${img.alt}</div>` : '<div class="text-red-500">Missing alt text</div>'}
+                    ${img.format ? `<div class="text-gray-400">${img.format}</div>` : ''}
+                </div>
+            `).join('');
+
+            count.textContent = `${deepCheckData.images.length} images found${deepCheckData.images.length > 20 ? ' (showing first 20)' : ''}`;
+            section.classList.remove('hidden');
+        }
+
+        function renderRequests() {
+            const container = document.getElementById('requests-list');
+            const count = document.getElementById('requests-count');
+            const section = document.getElementById('section-requests');
+
+            if (deepCheckData.requests.length === 0) return;
+
+            // Only show first 50 requests
+            const displayRequests = deepCheckData.requests.slice(0, 50);
+
+            container.innerHTML = displayRequests.map(req => `
+                <div class="text-xs p-2 bg-gray-50 rounded flex justify-between items-center">
+                    <div class="truncate flex-1">
+                        <span class="font-mono text-gray-600">${req.method || 'GET'}</span>
+                        <span class="ml-2">${req.url}</span>
+                    </div>
+                    ${req.type ? `<span class="text-gray-500 text-xs ml-2">${req.type}</span>` : ''}
+                </div>
+            `).join('');
+
+            count.textContent = `${deepCheckData.requests.length} requests found${deepCheckData.requests.length > 50 ? ' (showing first 50)' : ''}`;
+            section.classList.remove('hidden');
+        }
+
+        function renderTrackers() {
+            const container = document.getElementById('trackers-list');
+            const count = document.getElementById('trackers-count');
+            const section = document.getElementById('section-trackers');
+
+            if (deepCheckData.trackers.length === 0) return;
+
+            container.innerHTML = deepCheckData.trackers.map(tracker => `
+                <div class="text-xs p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <div class="font-semibold">${tracker.name || 'Unknown Tracker'}</div>
+                    ${tracker.category ? `<div class="text-gray-600">${tracker.category}</div>` : ''}
+                    ${tracker.privacy_risk ? `<div class="text-red-600 text-xs">Privacy Risk: ${tracker.privacy_risk}</div>` : ''}
+                </div>
+            `).join('');
+
+            count.textContent = `${deepCheckData.trackers.length} trackers detected`;
+            section.classList.remove('hidden');
+        }
+
+        function renderTechnologies() {
+            const container = document.getElementById('technologies-list');
+            const count = document.getElementById('technologies-count');
+            const section = document.getElementById('section-technologies');
+
+            if (deepCheckData.technologies.length === 0) return;
+
+            container.innerHTML = deepCheckData.technologies.map(tech => `
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    ${tech.name || 'Unknown'}
+                    ${tech.version ? ` v${tech.version}` : ''}
+                </span>
+            `).join('');
+
+            count.textContent = `${deepCheckData.technologies.length} technologies detected`;
+            section.classList.remove('hidden');
+        }
+
+        function renderSecurityScore(scoreData) {
+            const scoreContainer = document.getElementById('security-score');
+            const section = document.getElementById('section-security');
+
+            const score = scoreData.score || 0;
+            let scoreColor = 'text-green-600';
+            let scoreLabel = 'Good';
+
+            if (score < 50) {
+                scoreColor = 'text-red-600';
+                scoreLabel = 'Poor';
+            } else if (score < 70) {
+                scoreColor = 'text-orange-600';
+                scoreLabel = 'Fair';
+            }
+
+            scoreContainer.innerHTML = `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded">
+                    <div>
+                        <div class="text-sm font-semibold font-body">Security Score</div>
+                        <div class="text-xs text-gray-600 font-body">${scoreData.total_issues || 0} total issues</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold ${scoreColor}">${score}</div>
+                        <div class="text-xs text-gray-600">${scoreLabel}</div>
+                    </div>
+                </div>
+            `;
+
+            section.classList.remove('hidden');
+        }
+
+        function renderSecurityIssues() {
+            const section = document.getElementById('section-security');
+
+            ['critical', 'high', 'medium', 'low'].forEach(severity => {
+                const issues = deepCheckData.securityIssues[severity];
+                if (issues && issues.length > 0) {
+                    const container = document.getElementById(severity + '-list');
+                    const issueSection = document.getElementById('issues-' + severity);
+
+                    issueSection.classList.remove('hidden');
+                    container.innerHTML = issues.map(issue => `
+                        <div class="text-xs p-3 bg-white border border-gray-200 rounded">
+                            <div class="font-semibold">${issue.title || issue.type}</div>
+                            <div class="text-gray-600 mt-1">${issue.description || ''}</div>
+                            ${issue.remediation ? `<div class="text-gray-500 mt-2 italic">Fix: ${issue.remediation}</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            });
+
+            section.classList.remove('hidden');
+        }
+
+        // On page load, restore state from URL query parameters
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const url = urlParams.get('url');
+            const tab = urlParams.get('tab');
+
+            // If URL in query params, auto-submit
+            if (url) {
+                const input = document.querySelector('input[name="url"]');
+                if (input) {
+                    input.value = url;
+                    // Auto-submit the form
+                    handleURLSubmission(url);
+                }
+            }
+        });
+
+        // Handle browser back/forward navigation
+        window.addEventListener('popstate', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const newUrl = urlParams.get('url');
+            const newTab = urlParams.get('tab');
+
+            // If URL changed, re-analyze
+            if (newUrl && newUrl !== currentAnalysisURL) {
+                const input = document.querySelector('input[name="url"]');
+                if (input) {
+                    input.value = newUrl;
+                    handleURLSubmission(newUrl);
+                }
+            }
+            // If just tab changed, switch tabs
+            else if (newTab && document.getElementById('results-section') && !document.getElementById('results-section').classList.contains('hidden')) {
+                switchTab(newTab, false); // false = allow deep check
+            }
+        });
     </script>
 </body>
 </html>
