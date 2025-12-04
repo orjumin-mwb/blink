@@ -165,14 +165,9 @@
             animation: fadeIn 0.3s ease-out;
         }
 
-        /* Screenshot progressive loading styles */
-        .screenshot-loaded {
-            opacity: 1 !important;
-        }
 
-        .screenshot-placeholder-hidden {
-            opacity: 0 !important;
-        }
+        /* Screenshot progressive loading styles - simplified */
+        /* Transitions are now handled inline for better control */
 
         /* Tab System Styles */
         .tab-button {
@@ -197,12 +192,25 @@
             border-color: #001B4D !important;
         }
 
+        /* Tab content wrapper to maintain layout */
+        .tab-content-wrapper {
+            position: relative;
+            min-height: 500px;
+        }
+
         .tab-content {
-            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.2s ease;
         }
 
         .tab-content.hidden {
-            display: none !important;
+            opacity: 0;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -267,40 +275,42 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column (2/3 width) - Overview Tab -->
-                <div id="results-overview" class="tab-content lg:col-span-2 bg-white rounded-lg shadow-md min-h-[500px] min-w-[52rem]">
-                    <div class="p-6">
-                        <!-- Progress Indicators (inside Overview tab) -->
-                        <div id="progress-container" class="mb-6 hidden">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="text-sm font-semibold text-gray-700 font-body">Progress</div>
-                                <div class="flex flex-wrap gap-2">
-                                    <span id="stage-dns" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
-                                    <span id="stage-tcp" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
-                                    <span id="stage-tls" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TLS</span>
-                                    <span id="stage-response" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Response</span>
-                                    <span id="stage-scamguard" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">AI</span>
+                <!-- Left Column (2/3 width) - Tab Content Wrapper -->
+                <div class="lg:col-span-2 tab-content-wrapper">
+                    <!-- Overview Tab -->
+                    <div id="results-overview" class="tab-content bg-white rounded-lg shadow-md min-w-[52rem] w-full">
+                        <div class="p-6">
+                            <!-- Progress Indicators (inside Overview tab) -->
+                            <div id="progress-container" class="mb-6 hidden">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm font-semibold text-gray-700 font-body">Progress</div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span id="stage-dns" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">DNS</span>
+                                        <span id="stage-tcp" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TCP</span>
+                                        <span id="stage-tls" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">TLS</span>
+                                        <span id="stage-response" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">Response</span>
+                                        <span id="stage-scamguard" class="progress-stage px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-600">AI</span>
+                                    </div>
                                 </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="progress-bar" class="progress-bar bg-primary-blue h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                                <div id="progress-message" class="text-sm text-gray-600 mt-2 font-body"></div>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="progress-bar" class="progress-bar bg-primary-blue h-2 rounded-full" style="width: 0%"></div>
+
+                            <!-- ScamGuard Analysis Stream -->
+                            <div id="scamguard-stream" class="hidden mb-4 animate-fadeIn">
+                                <h2 class="text-xl font-bold text-gray-800 mb-3 font-heading">AI Security Analysis</h2>
+                                <div id="scamguard-text" class="text-sm text-gray-700 markdown-content font-body"></div>
                             </div>
-                            <div id="progress-message" class="text-sm text-gray-600 mt-2 font-body"></div>
-                        </div>
 
-                        <!-- ScamGuard Analysis Stream -->
-                        <div id="scamguard-stream" class="hidden mb-4 animate-fadeIn">
-                            <h2 class="text-xl font-bold text-gray-800 mb-3 font-heading">AI Security Analysis</h2>
-                            <div id="scamguard-text" class="text-sm text-gray-700 markdown-content font-body"></div>
+                            <!-- Detailed Results (appears at the end) -->
+                            <div id="results"></div>
                         </div>
-
-                        <!-- Detailed Results (appears at the end) -->
-                        <div id="results"></div>
                     </div>
-                </div>
 
-                <!-- Left Column (2/3 width) - Advanced Tab -->
-                <div id="results-advanced" class="tab-content hidden lg:col-span-2 bg-white rounded-lg shadow-md min-h-[500px] min-w-[52rem]">
+                    <!-- Advanced Tab -->
+                    <div id="results-advanced" class="tab-content hidden bg-white rounded-lg shadow-md min-w-[52rem] w-full">
                     <div class="p-6">
                         <!-- Deep Check Progress indicator (inside Advanced tab) -->
                         <div id="deep-check-progress" class="mb-6 hidden">
@@ -384,10 +394,11 @@
 
                         </div>
                     </div>
+                    </div>
                 </div>
 
-            <!-- Right Column (1/3 width) -->
-            <div class="lg:col-span-1 min-w-[27rem]">
+                <!-- Right Column (1/3 width) -->
+                <div class="lg:col-span-1 min-w-[27rem]">
                 <div class="verdict-gauge text-center bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
                     <div style="position: relative; width: 300px; height: 160px; margin: 0 auto;">
                         <svg width="300" height="160" viewBox="0 0 300 160">
@@ -458,17 +469,17 @@
                 <div id="screenshot-section" class="hidden bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
                     <div class="relative rounded-lg overflow-hidden shadow-2xl" style="width: 100%; aspect-ratio: 16/10; padding: 5px; background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(255,255,255,1) 100%);">
                         <div class="relative w-full h-full rounded-md overflow-hidden bg-gray-100">
-                            <!-- BlurHash Canvas (blurred placeholder) -->
+                            <!-- BlurHash Canvas (blurred placeholder) - now visible by default -->
                             <canvas
                                 id="blurhash-canvas"
-                                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                                style="opacity: 0; filter: blur(20px);"
+                                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+                                style="opacity: 1; filter: blur(20px); transform: scale(1.1);"
                             ></canvas>
 
                             <!-- Actual Screenshot Image (sharp) -->
                             <img
                                 id="screenshot-img"
-                                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
                                 style="opacity: 0;"
                                 alt="Page preview"
                             />
@@ -476,10 +487,11 @@
                             <!-- Gradient Overlay from bottom -->
                             <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style="background: linear-gradient(to top, rgba(0,0,0,0.05) 0%, transparent 100%);"></div>
 
-                        
-                            <!-- Loading Indicator -->
+
+                            <!-- Loading Indicator - now hidden by default -->
                             <div id="screenshot-loading"
-                                 class="absolute inset-0 flex items-center justify-center bg-gray-100">
+                                 class="absolute inset-0 flex items-center justify-center bg-gray-100"
+                                 style="display: none;">
                                 <div class="flex flex-col items-center">
                                     <svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -490,7 +502,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
             </div>
@@ -516,6 +528,7 @@
         // Store current URL for screenshot functionality
         let currentAnalysisURL = '';
         let gaugeAnimationRunning = false; // Prevent multiple gauge animations
+        let currentURLMalicious = false; // Track if current URL is malicious
 
         // Function to handle URL analysis
         function handleURLSubmission(url) {
@@ -523,6 +536,20 @@
 
             // Store URL for screenshot functionality
             currentAnalysisURL = url;
+
+            // Reset malicious flag for new URL
+            currentURLMalicious = false;
+
+            // Re-enable advanced tab in case it was disabled
+            const advancedTab = document.getElementById('tab-advanced');
+            if (advancedTab) {
+                advancedTab.disabled = false;
+                advancedTab.classList.remove('opacity-50', 'cursor-not-allowed');
+                advancedTab.classList.add('hover:bg-gray-100');
+
+                // Re-add event listener
+                advancedTab.addEventListener('click', () => switchTab('advanced'));
+            }
 
             // Get current tab from URL params or default to overview
             const urlParams = new URLSearchParams(window.location.search);
@@ -538,6 +565,13 @@
             newUrl.searchParams.set('tab', currentTab);
             window.history.replaceState({}, '', newUrl.toString());
             console.log('URL updated to:', window.location.href);
+
+            // Remove vertical centering to prevent jump (do this BEFORE showing results)
+            const header = document.getElementById('initial-form');
+            if (header.classList.contains('justify-center')) {
+                header.classList.remove('justify-center', 'min-h-screen');
+                header.classList.add('justify-start', 'pt-20');
+            }
 
             // Show results section below the form
             document.getElementById('results-section').classList.remove('hidden');
@@ -556,17 +590,17 @@
             document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('progress-bar').style.width = '10%';
 
-            // Smooth scroll to progress bar
-            setTimeout(() => {
-                const progressContainer = document.getElementById('progress-container');
-                const rect = progressContainer.getBoundingClientRect();
-                const offset = window.pageYOffset + rect.top - 50; // Extra 50px scroll
+            // Disabled auto-scroll to prevent content jump
+            // setTimeout(() => {
+            //     const progressContainer = document.getElementById('progress-container');
+            //     const rect = progressContainer.getBoundingClientRect();
+            //     const offset = window.pageYOffset + rect.top - 50; // Extra 50px scroll
 
-                window.scrollTo({
-                    top: offset,
-                    behavior: 'smooth'
-                });
-            }, 100);
+            //     window.scrollTo({
+            //         top: offset,
+            //         behavior: 'smooth'
+            //     });
+            // }, 100);
 
             // Reset all stages
             ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
@@ -583,22 +617,25 @@
             // Reset gauge animation state
             gaugeAnimationRunning = false;
 
-            // Reset screenshot
+            // Reset screenshot to initial state
             const canvas = document.getElementById('blurhash-canvas');
             const img = document.getElementById('screenshot-img');
             const loading = document.getElementById('screenshot-loading');
             if (canvas) {
+                // Clear any previous canvas content
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Hide canvas until new blurhash is rendered to prevent flash of empty canvas
                 canvas.style.opacity = '0';
-                canvas.classList.remove('screenshot-placeholder-hidden');
             }
             if (img) {
                 img.src = '';
                 img.style.opacity = '0';
-                img.classList.remove('screenshot-loaded');
             }
             if (loading) {
+                // Show loader immediately until blurhash loads
                 loading.style.display = 'flex';
-                loading.innerHTML = '<svg class="animate-spin h-8 w-8 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-3 text-sm text-gray-600">Capturing screenshot...</span>';
+                loading.innerHTML = '<div class="flex flex-col items-center"><svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="mt-2 text-xs text-gray-600">Capturing...</span></div>';
             }
 
             // Close existing connection
@@ -816,70 +853,64 @@
                 // The data contains JSON-encoded HTML - parse it
                 try {
                     console.log('Malicious event received:', e.data);
-                    const html = JSON.parse(e.data);
 
-                    // Check if html is a string (rendered template) or object (raw data)
-                    if (typeof html === 'string') {
-                        // It's the rendered HTML template
-                        document.getElementById('results').innerHTML = html;
+                    // Clear and hide all other UI elements
+                    document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('scamguard-stream').classList.add('hidden');
+                    document.getElementById('scamguard-text').innerHTML = '';
 
-                        // Update verdict gauge directly for malicious URLs
-                        setTimeout(function() {
-                            const indicator = document.querySelector('.verdict-indicator');
-                            const statusEl = document.querySelector('.verdict-status');
-                            const textEl = document.querySelector('.verdict-text');
-
-                            // Let updateVerdictGauge handle the positioning
-                            if (typeof window.updateVerdictGauge === 'function') {
-                                window.updateVerdictGauge('malicious');
-                            }
-                        }, 100);
-                    } else if (typeof html === 'object') {
-                        // It's raw JSON data - show error message
-                        console.error('Received JSON object instead of HTML template:', html);
-                        document.getElementById('results').innerHTML = `
-                            <div class="bg-red-50 border border-red-200 rounded-md p-4">
-                                <div class="flex items-start">
-                                    <span class="text-red-600 text-xl mr-2">⚠</span>
-                                    <div>
-                                        <div class="text-sm font-semibold text-red-800">URL Flagged as Malicious</div>
-                                        <div class="text-sm text-red-700 mt-1">${html.error_message || 'This URL was flagged as potentially malicious'}</div>
-                                    </div>
+                    // Only show the security warning notification
+                    document.getElementById('results').innerHTML = `
+                        <div class="bg-red-50 border-2 border-red-300 rounded-lg p-6">
+                            <div class="flex items-start">
+                                <svg class="w-8 h-8 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-bold text-red-800 mb-2">Security Warning</h3>
+                                    <p class="text-red-700">This URL was flagged as potentially malicious by Malwarebytes URL Checker</p>
                                 </div>
                             </div>
-                        `;
+                        </div>
+                    `;
+
+                    // Disable the advanced tab (grey it out)
+                    const advancedTab = document.getElementById('tab-advanced');
+                    if (advancedTab) {
+                        advancedTab.disabled = true;
+                        advancedTab.classList.add('opacity-50', 'cursor-not-allowed');
+                        advancedTab.classList.remove('hover:bg-gray-100');
+
+                        // Remove click event listener
+                        advancedTab.replaceWith(advancedTab.cloneNode(true));
                     }
 
-                    // Update verdict gauge if it exists
+                    // Update verdict gauge to show malicious
                     setTimeout(function() {
                         if (typeof window.updateVerdictGauge === 'function') {
-                            window.updateVerdictGauge('bad');
+                            window.updateVerdictGauge('malicious');
                         }
                     }, 100);
+
+                    // Store flag that URL is malicious
+                    currentURLMalicious = true;
+
                 } catch (err) {
                     console.error('Failed to parse malicious event:', err, 'Raw data:', e.data);
                     document.getElementById('results').innerHTML = `
-                        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                        <div class="bg-red-50 border-2 border-red-300 rounded-lg p-6">
                             <div class="flex items-start">
-                                <span class="text-red-600 text-xl mr-2">⚠</span>
+                                <svg class="w-8 h-8 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
                                 <div>
-                                    <div class="text-sm font-semibold text-red-800">URL Flagged as Malicious</div>
-                                    <div class="text-sm text-red-700 mt-1">This URL was flagged as potentially malicious</div>
+                                    <h3 class="text-lg font-bold text-red-800 mb-2">Security Warning</h3>
+                                    <p class="text-red-700">This URL was flagged as potentially malicious by Malwarebytes URL Checker</p>
                                 </div>
                             </div>
                         </div>
                     `;
                 }
-
-                // Update UI to show malicious warning
-                document.getElementById('progress-bar').style.width = '100%';
-                document.getElementById('progress-bar').style.backgroundColor = '#ef4444';
-                document.getElementById('progress-message').textContent = 'URL flagged as malicious!';
-
-              
-
-                // Keep progress container visible after malicious warning
-                document.getElementById('progress-bar').style.backgroundColor = '';
 
                 // Close the connection
                 eventSource.close();
@@ -955,9 +986,14 @@
                             }
                         }, 100);
 
-                        // Mark AI stage as complete and overall progress as complete
-                        document.getElementById('stage-scamguard').classList.remove('stage-active');
-                        document.getElementById('stage-scamguard').classList.add('stage-complete');
+                        // Mark ALL stages as complete when check is done
+                        ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
+                            const el = document.getElementById('stage-' + stage);
+                            if (el) {
+                                el.classList.remove('stage-active', 'stage-error');
+                                el.classList.add('stage-complete');
+                            }
+                        });
                         document.getElementById('progress-bar').style.width = '100%';
                         document.getElementById('progress-message').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Check complete!';
 
@@ -996,9 +1032,14 @@
                     console.error('Failed to parse complete event data:', err);
                 }
 
-                // Mark AI stage as complete and overall progress as complete
-                document.getElementById('stage-scamguard').classList.remove('stage-active');
-                document.getElementById('stage-scamguard').classList.add('stage-complete');
+                // Mark ALL stages as complete when check is done
+                ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
+                    const el = document.getElementById('stage-' + stage);
+                    if (el) {
+                        el.classList.remove('stage-active', 'stage-error');
+                        el.classList.add('stage-complete');
+                    }
+                });
                 document.getElementById('progress-bar').style.width = '100%';
                 document.getElementById('progress-message').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Check complete!';
                 // Keep progress container visible after completion
@@ -1045,20 +1086,19 @@
             };
         }
 
-        // Screenshot Loading Function
+        // Screenshot Loading Function with Progressive Enhancement
         function loadScreenshot(url) {
             const canvas = document.getElementById('blurhash-canvas');
             const img = document.getElementById('screenshot-img');
             const loading = document.getElementById('screenshot-loading');
-            const info = document.getElementById('screenshot-info');
 
             if (!canvas || !img) return;
 
-            // Keep loading state visible
-            if (loading) {
-                loading.style.display = 'flex';
-                loading.innerHTML = '<svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-3 text-sm text-gray-600">Capturing screenshot...</span>';
-            }
+            console.log('Starting screenshot capture for:', url);
+
+            // Track loading state
+            let blurhashLoaded = false;
+            let imageLoaded = false;
 
             // Fetch screenshot with retry logic
             let retryCount = 0;
@@ -1076,6 +1116,7 @@
                         // Step 1: Decode and render blurhash if available
                         if (data.blurhash && data.width && data.height && typeof BlurHash !== 'undefined') {
                             try {
+                                console.log('Rendering blurhash...');
                                 const pixels = BlurHash.decode(data.blurhash, 32, 32);
                                 canvas.width = 32;
                                 canvas.height = 32;
@@ -1083,45 +1124,91 @@
                                 const imageData = ctx.createImageData(32, 32);
                                 imageData.data.set(pixels);
                                 ctx.putImageData(imageData, 0, 0);
+
+                                // Show the blurred canvas with a quick fade-in
+                                canvas.style.transition = 'opacity 0.3s ease-in';
                                 canvas.style.opacity = '1';
-                                // Hide loading once we have blurhash
+                                blurhashLoaded = true;
+
+                                // Hide loader now that we have blurhash
                                 if (loading) loading.style.display = 'none';
+
+                                console.log('Blurhash rendered successfully');
                             } catch (err) {
                                 console.error('Failed to decode blurhash:', err);
+                                // Fall back to showing loader
+                                if (loading && !blurhashLoaded) {
+                                    loading.style.display = 'flex';
+                                }
+                            }
+                        } else {
+                            console.log('No blurhash data available');
+                            // Show loading if no blurhash
+                            if (loading && !blurhashLoaded) {
+                                loading.style.display = 'flex';
                             }
                         }
 
                         // Step 2: Load full screenshot image
                         const newImg = new Image();
+
                         newImg.onload = function() {
+                            console.log('Full image loaded, transitioning...');
                             img.src = data.base64_data;
+                            imageLoaded = true;
+
+                            // Hide loading
                             if (loading) loading.style.display = 'none';
 
-                            // Capture time removed - no longer displayed
+                            // Smooth transition from blur to sharp
+                            // Set longer transition for the canvas fade-out
+                            if (canvas && blurhashLoaded) {
+                                canvas.style.transition = 'opacity 0.7s ease-out';
+                            }
 
-                            // Fade in sharp image, fade out blur
+                            // Fade in the sharp image and fade out the blur simultaneously
                             setTimeout(() => {
-                                img.classList.add('screenshot-loaded');
-                                canvas.classList.add('screenshot-placeholder-hidden');
+                                img.style.opacity = '1';
+                                if (canvas && blurhashLoaded) {
+                                    canvas.style.opacity = '0';
+                                }
                             }, 50);
                         };
 
                         newImg.onerror = function() {
-                            // Only show error after retries exhausted
-                            if (retryCount >= maxRetries && loading) {
-                                loading.innerHTML = '<span class="text-gray-400 text-sm">Screenshot preview not available</span>';
+                            console.error('Failed to load screenshot image');
+                            retryCount++;
+                            if (retryCount < maxRetries) {
+                                console.log(`Retrying... (attempt ${retryCount + 1}/${maxRetries})`);
+                                setTimeout(attemptScreenshot, 2000);
+                            } else {
+                                // Show error message after all retries
+                                if (loading) {
+                                    loading.style.display = 'flex';
+                                    loading.innerHTML = '<span class="text-gray-400 text-sm">Screenshot preview not available</span>';
+                                }
+                                // If we have blurhash, keep it visible
+                                if (canvas && blurhashLoaded) {
+                                    canvas.style.opacity = '0.5';
+                                }
                             }
                         };
 
+                        // Start loading the image
                         newImg.src = data.base64_data;
+
                     } else {
-                        // Retry if not successful yet
+                        // No data or not successful
+                        console.log('Screenshot not ready, retrying...');
                         retryCount++;
                         if (retryCount < maxRetries) {
-                            setTimeout(attemptScreenshot, 2000); // Retry after 2 seconds
-                        } else if (loading) {
-                            // Only show error message after all retries
-                            loading.innerHTML = '<span class="text-gray-400 text-sm">Screenshot preview not available</span>';
+                            setTimeout(attemptScreenshot, 2000);
+                        } else {
+                            // Show error after all retries
+                            if (loading) {
+                                loading.style.display = 'flex';
+                                loading.innerHTML = '<span class="text-gray-400 text-sm">Screenshot preview not available</span>';
+                            }
                         }
                     }
                 })
@@ -1129,9 +1216,12 @@
                     console.error('Failed to fetch screenshot:', err);
                     retryCount++;
                     if (retryCount < maxRetries) {
-                        setTimeout(attemptScreenshot, 2000); // Retry after 2 seconds
-                    } else if (loading) {
-                        loading.innerHTML = '<span class="text-gray-400 text-sm">Screenshot preview not available</span>';
+                        setTimeout(attemptScreenshot, 2000);
+                    } else {
+                        if (loading) {
+                            loading.style.display = 'flex';
+                            loading.innerHTML = '<span class="text-gray-400 text-sm">Screenshot preview not available</span>';
+                        }
                     }
                 });
             }
@@ -1272,6 +1362,12 @@
 
         // Tab switching functionality
         function switchTab(tabName, skipDeepCheck = false) {
+            // Prevent switching to advanced tab if URL is malicious
+            if (tabName === 'advanced' && currentURLMalicious) {
+                console.log('Cannot switch to advanced tab - URL is malicious');
+                return;
+            }
+
             // Remove active class from all tab buttons
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.classList.remove('active');

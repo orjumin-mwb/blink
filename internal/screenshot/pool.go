@@ -4,15 +4,19 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
 
 // BrowserInstance represents a single browser instance in the pool
 type BrowserInstance struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	inUse  bool
+	ctx        context.Context
+	cancel     context.CancelFunc
+	inUse      bool
+	healthy    bool
+	lastUsed   time.Time
+	errorCount int
 }
 
 // BrowserPool manages a pool of pre-warmed browser instances for speed
@@ -112,7 +116,10 @@ func (p *BrowserPool) createInstance() (*BrowserInstance, error) {
 			cancel()
 			allocCancel()
 		},
-		inUse: false,
+		inUse:      false,
+		healthy:    true,
+		lastUsed:   time.Now(),
+		errorCount: 0,
 	}, nil
 }
 
@@ -121,11 +128,34 @@ func (p *BrowserPool) Acquire(ctx context.Context) (*BrowserInstance, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// Find first available instance
+	// Find first available and healthy instance
 	for _, instance := range p.instances {
-		if !instance.inUse {
+		if !instance.inUse && instance.healthy {
 			instance.inUse = true
+			instance.lastUsed = time.Now()
 			return instance, nil
+		}
+	}
+
+	// Try to recycle an unhealthy instance
+	for i, instance := range p.instances {
+		if !instance.inUse && !instance.healthy {
+			// Close the unhealthy instance
+			if instance.cancel != nil {
+				instance.cancel()
+			}
+
+			// Create a new instance
+			newInstance, err := p.createInstance()
+			if err != nil {
+				continue // Try next unhealthy instance
+			}
+
+			// Replace the unhealthy instance
+			p.instances[i] = newInstance
+			newInstance.inUse = true
+			newInstance.lastUsed = time.Now()
+			return newInstance, nil
 		}
 	}
 
@@ -143,10 +173,27 @@ func (p *BrowserPool) Release(instance *BrowserInstance) {
 	defer p.mu.Unlock()
 
 	instance.inUse = false
+	instance.lastUsed = time.Now()
 
 	// Optional: Clear browser state for next use
 	// This is skipped for maximum speed, but can be enabled if needed
 	// chromedp.Run(instance.ctx, chromedp.Navigate("about:blank"))
+}
+
+// MarkUnhealthy marks a browser instance as unhealthy due to an error
+func (p *BrowserPool) MarkUnhealthy(instance *BrowserInstance) {
+	if instance == nil {
+		return
+	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	instance.errorCount++
+	// Mark as unhealthy after 3 errors
+	if instance.errorCount >= 3 {
+		instance.healthy = false
+	}
 }
 
 // Close shuts down all browser instances in the pool
@@ -176,6 +223,13 @@ func (p *BrowserPool) Health() (available, total int) {
 		}
 	}
 	return
+}
+
+// Size returns the size of the browser pool
+func (p *BrowserPool) Size() int {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return len(p.instances)
 }
 
 // Context returns the context for a browser instance

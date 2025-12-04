@@ -13,12 +13,14 @@ import (
 
 	"github.com/buckket/go-blurhash"
 	"github.com/chromedp/chromedp"
+	"github.com/olegrjumin/blink/internal/logging"
 )
 
 // Screenshotter handles screenshot capture operations
 type Screenshotter struct {
 	pool        *BrowserPool
 	storageDir  string
+	logger      *logging.Logger
 }
 
 // New creates a new Screenshotter instance
@@ -37,6 +39,7 @@ func New(poolSize int, storageDir string) (*Screenshotter, error) {
 	return &Screenshotter{
 		pool:       pool,
 		storageDir: storageDir,
+		logger:     logging.New(),
 	}, nil
 }
 
@@ -56,6 +59,10 @@ func (s *Screenshotter) Capture(ctx context.Context, opts *Options) (*Result, er
 	// Get browser from pool
 	browser, err := s.pool.Acquire(ctx)
 	if err != nil {
+		s.logger.Error("Failed to acquire browser from pool",
+			"url", opts.URL,
+			"error", err.Error(),
+			"pool_size", s.pool.Size())
 		return &Result{
 			Success: false,
 			URL:     opts.URL,
@@ -78,13 +85,23 @@ func (s *Screenshotter) Capture(ctx context.Context, opts *Options) (*Result, er
 	)
 
 	if err != nil {
+		// Mark browser instance as potentially unhealthy
+		s.pool.MarkUnhealthy(browser)
+
 		if timeoutCtx.Err() == context.DeadlineExceeded {
+			s.logger.Error("Screenshot capture timed out",
+				"url", opts.URL,
+				"timeout", opts.Timeout,
+				"error", err.Error())
 			return &Result{
 				Success: false,
 				URL:     opts.URL,
 				Error:   ErrTimeout.Error(),
 			}, ErrTimeout
 		}
+		s.logger.Error("Screenshot capture failed",
+			"url", opts.URL,
+			"error", err.Error())
 		return &Result{
 			Success: false,
 			URL:     opts.URL,
@@ -99,6 +116,10 @@ func (s *Screenshotter) Capture(ctx context.Context, opts *Options) (*Result, er
 	if err != nil {
 		// Log error but don't fail - blurhash is optional enhancement
 		// Screenshot can still succeed without blurhash
+		s.logger.Error("Failed to decode PNG for blurhash generation",
+			"url", opts.URL,
+			"error", err.Error(),
+			"screenshot_size", len(buf))
 	}
 
 	var blurHashStr string
@@ -112,8 +133,17 @@ func (s *Screenshotter) Capture(ctx context.Context, opts *Options) (*Result, er
 		hash, err := blurhash.Encode(4, 3, img)
 		if err != nil {
 			// Log error but don't fail - blurhash is optional
+			s.logger.Error("Failed to generate blurhash",
+				"url", opts.URL,
+				"error", err.Error(),
+				"image_width", imgWidth,
+				"image_height", imgHeight)
 		} else {
 			blurHashStr = hash
+			s.logger.Info("Blurhash generated successfully",
+				"url", opts.URL,
+				"blurhash_length", len(hash),
+				"image_dimensions", fmt.Sprintf("%dx%d", imgWidth, imgHeight))
 		}
 	}
 
@@ -127,6 +157,14 @@ func (s *Screenshotter) Capture(ctx context.Context, opts *Options) (*Result, er
 		Width:         imgWidth,
 		Height:        imgHeight,
 	}
+
+	// Log successful capture
+	s.logger.Info("Screenshot captured successfully",
+		"url", opts.URL,
+		"capture_time_ms", captureTime,
+		"size_bytes", len(buf),
+		"has_blurhash", blurHashStr != "",
+		"dimensions", fmt.Sprintf("%dx%d", imgWidth, imgHeight))
 
 	// Handle response type
 	if opts.ResponseType == "base64" {
