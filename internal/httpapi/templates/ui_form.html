@@ -224,8 +224,8 @@
                         Suspicious link?
                     </h1>
                     <h2 class="font-heading font-black" style="font-size: 92px; line-height: 90%; letter-spacing: -2%;">
-                        <span class="text-primary-blue">Blink</span> 
-                        <span class="text-dark-blue">and know.</span>
+                        <span class="text-dark-blue">Know in a</span>
+                        <span class="text-primary-blue">Blink.</span> 
                     </h2>
                 </div>
             </div>
@@ -367,7 +367,7 @@
                     </div>
 
                     <div class="mt-2">
-                        <div class="verdict-status text-2xl font-bold text-gray-800">loading...</div>
+                        <div class="verdict-status text-2xl font-bold text-gray-800" style="margin-top: -40px;">loading...</div>
                         <div class="verdict-text text-xs text-gray-600 mt-1">Analyzing URL safety...</div>
                     </div>
                 </div>
@@ -432,6 +432,7 @@
 
         // Store current URL for screenshot functionality
         let currentAnalysisURL = '';
+        let gaugeAnimationRunning = false; // Prevent multiple gauge animations
 
         // Function to handle URL analysis
         function handleURLSubmission(url) {
@@ -475,6 +476,9 @@
             document.getElementById('scamguard-text').innerHTML = '';
             scamGuardTextBuffer = '';
             scamGuardVerdict = '';
+
+            // Reset gauge animation state
+            gaugeAnimationRunning = false;
 
             // Reset screenshot
             const canvas = document.getElementById('blurhash-canvas');
@@ -610,12 +614,8 @@
                     }
                     // Don't add verdict to buffer yet - it will be added when displaying
 
-                    // Update verdict gauge if the result is already displayed
-                    setTimeout(function() {
-                        if (typeof window.updateVerdictGauge === 'function') {
-                            window.updateVerdictGauge(verdict);
-                        }
-                    }, 100);
+                    // Store verdict but don't animate yet - wait for completion
+                    console.log('Verdict received:', verdict, '- waiting for completion to animate');
                 }
             });
 
@@ -804,6 +804,14 @@
                         document.getElementById('progress-bar').style.width = '100%';
                         document.getElementById('progress-message').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Check complete!';
 
+                        // NOW animate the gauge - everything is complete
+                        setTimeout(function() {
+                            if (typeof window.updateVerdictGauge === 'function' && detectedVerdict) {
+                                console.log('Analysis complete - animating gauge with verdict:', detectedVerdict);
+                                window.updateVerdictGauge(detectedVerdict);
+                            }
+                        }, 200);
+
                         // Keep progress container visible after completion
 
                         // Close the connection
@@ -815,11 +823,12 @@
                     // Otherwise handle as raw JSON data (legacy path)
                     console.log('Complete event data (legacy JSON):', data); // Debug log
 
-                    // Update verdict gauge with the final verdict if available
+                    // Update verdict gauge with the final verdict if available (legacy path)
                     setTimeout(function() {
                         if (typeof window.updateVerdictGauge === 'function') {
                             // Use stored verdict from scamguard or default to unknown
                             const finalVerdict = window.currentVerdict || 'unknown';
+                            console.log('Legacy path - animating gauge with verdict:', finalVerdict);
                             window.updateVerdictGauge(finalVerdict);
                         }
                     }, 100);
@@ -980,7 +989,15 @@
 
         // Update the new gauge based on verdict
         function updateVerdictGauge(verdict) {
-            let score = 0;
+            // Prevent multiple animations from running
+            if (gaugeAnimationRunning) {
+                console.log('Gauge animation already running, skipping...');
+                return;
+            }
+            
+            gaugeAnimationRunning = true;
+            
+            let targetScore = 0;
             let activeColor = '#FF6B9D';
             let statusText = 'loading...';
             let descText = 'Analyzing URL safety...';
@@ -989,32 +1006,32 @@
             switch(verdict) {
                 case 'bad':
                 case 'malicious':
-                    score = 25; // Red segment
+                    targetScore = 25; // Red segment
                     activeColor = '#FF6B9D';
                     statusText = 'Dangerous';
                     descText = "If you already entered this website, don't take a risk.";
                     break;
                 case 'suspicious':
-                    score = 60; // Yellow segment  
+                    targetScore = 60; // Yellow segment  
                     activeColor = '#FFD93D';
                     statusText = 'Suspicious';
                     descText = "Something doesn't look right, proceed carefully.";
                     break;
                 case 'safe':
-                    score = 95; // Bright green segment
+                    targetScore = 95; // Bright green segment
                     activeColor = '#22c55e';
                     statusText = 'Safe';
                     descText = 'No threats detected, this link appears safe.';
                     break;
                 default:
-                    score = 75; // Light green segment
+                    targetScore = 75; // Light green segment
                     activeColor = '#6BCF7F';
                     statusText = 'Unknown';
                     descText = 'Unable to determine safety level.';
                     break;
             }
 
-            console.log('Updating gauge - Verdict:', verdict, 'Score:', score, 'Color:', activeColor);
+            console.log('Starting gauge animation - Verdict:', verdict, 'Target Score:', targetScore, 'Color:', activeColor);
 
             // Update segment colors
             const redSeg = document.getElementById('red-segment');
@@ -1024,47 +1041,76 @@
 
             if (redSeg && yellowSeg && lightGreenSeg && brightGreenSeg) {
                 // Reset all segments to inactive colors
-                redSeg.setAttribute('stroke', '#FFB3C6');
-                yellowSeg.setAttribute('stroke', '#FFF2CC');
-                lightGreenSeg.setAttribute('stroke', '#C8E6C9');
-                brightGreenSeg.setAttribute('stroke', '#A5D6A7');
+                redSeg.setAttribute('stroke', '#FF1744');
+                yellowSeg.setAttribute('stroke', '#FFC107');
+                lightGreenSeg.setAttribute('stroke', '#4CAF50');
+                brightGreenSeg.setAttribute('stroke', '#2E7D32');
 
                 // Activate the appropriate segment
-                if (score < 50) {
-                    redSeg.setAttribute('stroke', '#FF6B9D');
-                } else if (score < 70) {
-                    yellowSeg.setAttribute('stroke', '#FFD93D');
-                } else if (score < 90) {
-                    lightGreenSeg.setAttribute('stroke', '#6BCF7F');
+                if (targetScore < 50) {
+                    redSeg.setAttribute('stroke', '#FF1744');
+                } else if (targetScore < 70) {
+                    yellowSeg.setAttribute('stroke', '#FFC107');
+                } else if (targetScore < 90) {
+                    lightGreenSeg.setAttribute('stroke', '#4CAF50');
                 } else {
-                    brightGreenSeg.setAttribute('stroke', '#22c55e');
+                    brightGreenSeg.setAttribute('stroke', '#2E7D32');
                 }
             }
 
-            // Calculate indicator position (same as TSX component)
-            const radius = 110;
-            const angle = Math.PI - (score / 100 * Math.PI);
-            const cx = 150 + radius * Math.cos(angle);
-            const cy = 140 - radius * Math.sin(angle);
-            
-            console.log('Position calculation - Score:', score, 'Angle:', angle, 'CX:', cx, 'CY:', cy);
-
-            // Update indicator dot position and color
+            // Animate indicator from 0 to target score
             const indicator = document.querySelector('.verdict-indicator');
-            if (indicator) {
+            const statusEl = document.querySelector('.verdict-status');
+            const textEl = document.querySelector('.verdict-text');
+            
+            if (!indicator) {
+                console.error('Could not find verdict-indicator element');
+                gaugeAnimationRunning = false; // Reset flag on error
+                return;
+            }
+
+            // Animation parameters
+            const animationDuration = 2000; // 2 seconds
+            const startTime = performance.now();
+            const radius = 110;
+
+            function animateIndicator(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / animationDuration, 1);
+                
+                // Use easeOutCubic for smooth animation
+                const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                const currentScore = easeOutCubic * targetScore;
+                
+                // Calculate indicator position
+                const angle = Math.PI - (currentScore / 100 * Math.PI);
+                const cx = 150 + radius * Math.cos(angle);
+                const cy = 140 - radius * Math.sin(angle);
+                
+                // Update indicator position and color
                 indicator.setAttribute('cx', cx.toString());
                 indicator.setAttribute('cy', cy.toString());
                 indicator.setAttribute('stroke', activeColor);
-                console.log('Updated indicator position to:', cx, cy);
-            } else {
-                console.error('Could not find verdict-indicator element');
+                
+                // Update status text with animated score
+                if (statusEl && progress > 0.5) { // Show text after halfway through animation
+                    statusEl.textContent = statusText;
+                }
+                if (textEl && progress > 0.7) { // Show description after 70% of animation
+                    textEl.textContent = descText;
+                }
+                
+                // Continue animation or finish
+                if (progress < 1) {
+                    requestAnimationFrame(animateIndicator);
+                } else {
+                    console.log('Animation complete - Final position:', cx, cy);
+                    gaugeAnimationRunning = false; // Reset flag when animation completes
+                }
             }
-
-            // Update status text
-            const statusEl = document.querySelector('.verdict-status');
-            const textEl = document.querySelector('.verdict-text');
-            if (statusEl) statusEl.textContent = statusText;
-            if (textEl) textEl.textContent = descText;
+            
+            // Start the animation
+            requestAnimationFrame(animateIndicator);
         }
 
         // Make updateVerdictGauge available globally
