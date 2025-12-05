@@ -240,14 +240,14 @@ type legacyDeepCheckResult struct {
 	ScriptsAnalyzed     int
 
 	// Additional data for scoring context
-	HTMLContent         string
-	Forms               []FormInfo
-	HTMLMetadata        *HTMLMetadata
-	ImageAnalysis       *ImageAnalysis
-	RuntimeAnalysis     *RuntimeResult
-	SecurityCheck       *SecurityCheckResult
-	Fingerprinting      *FingerprintAnalysis
-	AnalysisDuration    string
+	HTMLContent      string
+	Forms            []FormInfo
+	HTMLMetadata     *HTMLMetadata
+	ImageAnalysis    *ImageAnalysis
+	RuntimeAnalysis  *RuntimeResult
+	SecurityCheck    *SecurityCheckResult
+	Fingerprinting   *FingerprintAnalysis
+	AnalysisDuration string
 }
 
 // SecurityAssessment represents security analysis for a technology (legacy)
@@ -737,6 +737,9 @@ func analyzeDeviceCapabilities(apis []DetectedAPI) []DeviceCapability {
 func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts DeepCheckOptions, events chan<- StreamEvent) {
 	defer close(events)
 	startTime := time.Now()
+	isCancelled := func() bool {
+		return ctx.Err() != nil
+	}
 
 	// Send initial event
 	sendEvent(ctx, events, "analysis_started", "Starting deep analysis", map[string]string{
@@ -755,6 +758,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 		return
 	}
 
+	if isCancelled() {
+		return
+	}
+
 	// Fetch HTML body
 	sendEvent(ctx, events, "fetching", "Fetching page content", nil)
 	sendEvent(ctx, events, "analysis_progress", "Fetching page...", map[string]interface{}{
@@ -769,6 +776,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	}
 	defer body.Close()
 
+	if isCancelled() {
+		return
+	}
+
 	// Read body
 	const maxBodySize = 10 * 1024 * 1024 // 10MB
 	bodyReader := io.LimitReader(body, maxBodySize)
@@ -779,6 +790,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	}
 
 	htmlContent := string(bodyBytes)
+
+	if isCancelled() {
+		return
+	}
 
 	// Progress: 20% - HTML parsing
 	sendEvent(ctx, events, "analysis_progress", "Parsing HTML...", map[string]interface{}{
@@ -809,6 +824,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 		}
 	}
 
+	if isCancelled() {
+		return
+	}
+
 	// Progress: 30% - Technology detection
 	sendEvent(ctx, events, "analysis_progress", "Detecting technologies...", map[string]interface{}{
 		"progress": 30,
@@ -830,6 +849,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 		})
 	}
 
+	if isCancelled() {
+		return
+	}
+
 	// Progress: 40% - Tracker detection
 	sendEvent(ctx, events, "analysis_progress", "Analyzing trackers...", map[string]interface{}{
 		"progress": 40,
@@ -844,6 +867,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	trackers := trackerDetector.DetectInHTML(htmlContent)
 	for _, tracker := range trackers {
 		sendEvent(ctx, events, "tracker_found", "Tracker detected", tracker)
+	}
+
+	if isCancelled() {
+		return
 	}
 
 	// Progress: 50% - Script analysis
@@ -871,6 +898,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 		for _, tracker := range scriptTrackers {
 			sendEvent(ctx, events, "tracker_found", "Tracker in script", tracker)
 		}
+
+		if isCancelled() {
+			return
+		}
 	}
 
 	// Extract external scripts
@@ -889,6 +920,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 			"requests": requests,
 			"count":    len(requests),
 		})
+	}
+
+	if isCancelled() {
+		return
 	}
 
 	// Progress: 70% - Security analysis
@@ -930,6 +965,10 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 		externalScripts,
 		forms,
 	)
+
+	if isCancelled() {
+		return
+	}
 
 	// Emit security issues by severity
 	if securityResult != nil {
@@ -982,10 +1021,18 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 		sendEvent(ctx, events, "fingerprinting", "Fingerprinting analysis", fingerprinting)
 	}
 
+	if isCancelled() {
+		return
+	}
+
 	// Analyze privacy risks
 	privacyRisks := trackerDetector.AnalyzePrivacyRisks(trackers, allAPIs)
 	for _, risk := range privacyRisks {
 		sendEvent(ctx, events, "privacy_risk", "Privacy risk detected", risk)
+	}
+
+	if isCancelled() {
+		return
 	}
 
 	// Progress: 100% - Complete
@@ -1114,19 +1161,19 @@ func (c *Checker) performSecurityAnalysis(
 
 // SecurityContext holds information about the page type for context-aware scoring
 type SecurityContext struct {
-	PageType      string  // "login", "payment", "api", "static"
-	HasForms      bool
-	HasPasswords  bool
-	HasPayment    bool
-	IsHTTPS       bool
+	PageType       string // "login", "payment", "api", "static"
+	HasForms       bool
+	HasPasswords   bool
+	HasPayment     bool
+	IsHTTPS        bool
 	RiskMultiplier float64
 }
 
 // determineSecurityContext analyzes the page to determine its security context
 func (c *Checker) determineSecurityContext(pageURL string, html string, forms []FormInfo) SecurityContext {
 	context := SecurityContext{
-		PageType:      "static",
-		IsHTTPS:       strings.HasPrefix(pageURL, "https://"),
+		PageType:       "static",
+		IsHTTPS:        strings.HasPrefix(pageURL, "https://"),
 		RiskMultiplier: 1.0,
 	}
 
@@ -1135,15 +1182,15 @@ func (c *Checker) determineSecurityContext(pageURL string, html string, forms []
 
 	// Detect page type
 	if strings.Contains(urlLower, "login") || strings.Contains(urlLower, "signin") ||
-	   strings.Contains(urlLower, "auth") {
+		strings.Contains(urlLower, "auth") {
 		context.PageType = "login"
 		context.RiskMultiplier = 2.0 // Login pages have higher risk
 	} else if strings.Contains(urlLower, "checkout") || strings.Contains(urlLower, "payment") ||
-	          strings.Contains(urlLower, "cart") {
+		strings.Contains(urlLower, "cart") {
 		context.PageType = "payment"
 		context.RiskMultiplier = 2.5 // Payment pages have highest risk
 	} else if strings.Contains(urlLower, "/api/") || strings.Contains(urlLower, "/v1/") ||
-	          strings.Contains(urlLower, "/v2/") {
+		strings.Contains(urlLower, "/v2/") {
 		context.PageType = "api"
 		context.RiskMultiplier = 1.5 // API endpoints need good security
 	} else if strings.Contains(urlLower, "admin") || strings.Contains(urlLower, "dashboard") {

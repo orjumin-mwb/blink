@@ -9,13 +9,19 @@ type RedirectHop struct {
 
 // ScamGuardResult holds the result of a ScamGuard scan
 type ScamGuardResult struct {
-	Verdict        string `json:"verdict"`                   // "malicious" | "suspicious" | "safe" | "unknown"
-	Analysis       string `json:"analysis,omitempty"`        // Natural language explanation from AI
-	DestinationURL string `json:"destination_url,omitempty"` // Final URL after redirects (from ScamGuard)
-	Reachable      bool   `json:"reachable"`                 // Whether URL was reachable
-	ResponseID     string `json:"response_id,omitempty"`     // ScamGuard response ID for tracing
-	ThreadID       string `json:"thread_id,omitempty"`       // ScamGuard thread ID for tracing
-	Error          string `json:"error,omitempty"`           // If scan failed
+	Verdict        string  `json:"verdict"`                   // "malicious" | "suspicious" | "safe" | "unknown"
+	Analysis       string  `json:"analysis,omitempty"`        // Natural language explanation from AI
+	DestinationURL string  `json:"destination_url,omitempty"` // Final URL after redirects (from ScamGuard)
+	Reachable      bool    `json:"reachable"`                 // Whether URL was reachable
+	ResponseID     string  `json:"response_id,omitempty"`     // ScamGuard response ID for tracing
+	ThreadID       string  `json:"thread_id,omitempty"`       // ScamGuard thread ID for tracing
+	Error          string  `json:"error,omitempty"`           // If scan failed
+
+	// Enhanced verdict fields (from text analysis)
+	EnhancedVerdict string  `json:"enhanced_verdict,omitempty"` // Enhanced verdict from text parsing
+	Confidence      float64 `json:"confidence,omitempty"`       // Confidence in the verdict (0.0-1.0)
+	Score           int     `json:"score,omitempty"`            // Score out of 30 for ScamGuard portion
+	Reason          string  `json:"reason,omitempty"`           // Brief explanation of verdict
 }
 
 // CheckResult holds the result of a URL check

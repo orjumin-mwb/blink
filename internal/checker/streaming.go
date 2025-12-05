@@ -119,28 +119,50 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 							})
 						}
 
-					case "response.completed":
-						sendEvent(ctx, events, "scamguard.completed", "ScamGuard analysis complete", nil)
+					// Note: response.completed is handled explicitly after API call completes
+					// to ensure completion event is always sent, even if API doesn't send it
 					}
 				}
 			}()
 
 			// Call ScamGuard API
 			sgResult, err := c.scamGuardClient.ScanURLStreaming(ctx, rawURL, sgEvents)
+
+			// Close channel to unblock forwarding goroutine
+			close(sgEvents)
+
 			if err != nil {
 				scamGuardResult = &ScamGuardResult{
 					Error: err.Error(),
 				}
 				sendEvent(ctx, events, "scamguard.error", "ScamGuard scan failed", map[string]string{"error": err.Error()})
-			} else if sgResult != nil {
-				scamGuardResult = &ScamGuardResult{
-					Verdict:        sgResult.Verdict,
-					Analysis:       sgResult.Analysis,
-					DestinationURL: sgResult.DestinationURL,
-					Reachable:      sgResult.Reachable,
-					ResponseID:     sgResult.ResponseID,
-					ThreadID:       sgResult.ThreadID,
+			} else {
+				if sgResult != nil {
+					scamGuardResult = &ScamGuardResult{
+						Verdict:        sgResult.Verdict,
+						Analysis:       sgResult.Analysis,
+						DestinationURL: sgResult.DestinationURL,
+						Reachable:      sgResult.Reachable,
+						ResponseID:     sgResult.ResponseID,
+						ThreadID:       sgResult.ThreadID,
+					}
+
+					// Add enhanced verdict fields if available
+					if sgResult.Enhanced != nil {
+						scamGuardResult.EnhancedVerdict = sgResult.Enhanced.Verdict
+						scamGuardResult.Confidence = sgResult.Enhanced.Confidence
+						scamGuardResult.Score = sgResult.Enhanced.Score
+						scamGuardResult.Reason = sgResult.Enhanced.Reason
+
+						// Use enhanced verdict if original was unknown
+						if sgResult.Verdict == "unknown" && sgResult.Enhanced.Verdict != "unknown" {
+							scamGuardResult.Verdict = sgResult.Enhanced.Verdict
+						}
+					}
 				}
+
+				// Send completion event only on success (error event already stops blinking)
+				sendEvent(ctx, events, "scamguard.completed", "ScamGuard analysis complete", nil)
 			}
 		}()
 	}
@@ -320,6 +342,10 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 	if result.Status >= 200 && result.Status < 400 {
 		result.OK = true
 		sendEvent(ctx, events, "complete", "Check complete", result)
+
+		// Calculate and send final verdict with scoring
+		// Note: This will be calculated by the service layer that consumes these events
+		// The service layer will use the scoring.go to calculate the final verdict
 	} else {
 		result.ErrorType = ErrorHTTP
 		result.ErrorMessage = fmt.Sprintf("HTTP %d", result.Status)

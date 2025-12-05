@@ -41,21 +41,27 @@ type DeepCheckOptions struct {
 	RuntimeTimeout         time.Duration
 
 	// Analysis options
-	AnalyzeJS         bool
-	FetchExternalJS   bool
-	MaxJSFiles        int
-	JSTimeout         time.Duration
+	AnalyzeJS       bool
+	FetchExternalJS bool
+	MaxJSFiles      int
+	JSTimeout       time.Duration
 }
 
 // DefaultDeepCheckOptions returns DeepCheckOptions with sensible defaults
 func DefaultDeepCheckOptions() DeepCheckOptions {
 	return DeepCheckOptions{
-		CheckOptions:           DefaultOptions(),
+		CheckOptions: CheckOptions{
+			Timeout:         60 * time.Second, // Deep checks need longer by default
+			FollowRedirects: true,
+			MaxRedirects:    5,
+			Method:          "GET",
+			UserAgent:       "blink-checker/1.0",
+		},
 		EnableRuntimeDetection: true,
 		RuntimeTimeout:         5 * time.Second,
-		AnalyzeJS:             true,
-		FetchExternalJS:       true,
-		MaxJSFiles:           20,
-		JSTimeout:            3 * time.Second,
+		AnalyzeJS:              true,
+		FetchExternalJS:        true,
+		MaxJSFiles:             20,
+		JSTimeout:              3 * time.Second,
 	}
 }

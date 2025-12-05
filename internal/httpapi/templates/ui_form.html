@@ -195,14 +195,24 @@
         /* Tab content wrapper to maintain layout */
         .tab-content-wrapper {
             position: relative;
-            min-height: 500px;
         }
 
+        /* On desktop, use absolute positioning for smooth tab transitions */
+        @media (min-width: 1024px) {
+            .tab-content-wrapper {
+                min-height: 500px;
+            }
+
+            .tab-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+            }
+        }
+
+        /* On mobile, use normal flow */
         .tab-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
             opacity: 1;
             pointer-events: auto;
             transition: opacity 0.2s ease;
@@ -216,7 +226,7 @@
 </head>
 <body class="min-h-screen font-body" style="background-color: #D5EEFF;">
     <!-- Initial Centered Form View -->
-    <header id="initial-form" class="min-h-screen flex flex-col items-center justify-center p-6">
+    <header id="initial-form" class="min-h-screen flex flex-col items-center justify-center p-6 mb-5">
         <div class="w-full max-w-2xl">
             <!-- Centered Header -->
             <div class="text-center mb-16">
@@ -229,29 +239,30 @@
                 
                 <!-- Main Headline -->
                 <div class="mb-10">
-                    <h1 class="font-heading font-black text-dark-blue mb-2" style="font-size: 92px; line-height: 90%; letter-spacing: -2%;">
+                    <h1 class="font-heading font-black text-dark-blue mb-2 text-5xl sm:text-7xl lg:text-[92px]" style="line-height: 90%; letter-spacing: -2%;">
                         Suspicious link?
                     </h1>
-                    <h2 class="font-heading font-black" style="font-size: 92px; line-height: 90%; letter-spacing: -2%;">
+                    <h2 class="font-heading font-black text-5xl sm:text-7xl lg:text-[92px]" style="line-height: 90%; letter-spacing: -2%;">
                         <span class="text-dark-blue">Know in a</span>
-                        <span class="text-primary-blue">Blink.</span> 
+                        <span class="text-primary-blue">Blink.</span>
                     </h2>
                 </div>
             </div>
 
             <!-- Sleek Input Form -->
-            <div class="max-w-4xl mx-auto">
+            <div class="max-w-4xl mx-auto px-4">
                 <form id="check-form">
-                    <div class="flex bg-white rounded-full shadow-xl p-2 border-2 border-gray-100 hover:border-primary-blue transition-all duration-300">
+                    <div class="flex bg-white rounded-full shadow-xl p-1 sm:p-2 border-2 border-gray-100 hover:border-primary-blue transition-all duration-300">
                         <input type="url"
                                name="url"
                                placeholder="example-suspicious-url.com"
                                required
                                autofocus
-                               class="flex-1 px-8 py-4 text-xl font-body text-gray-700 placeholder-gray-400 bg-transparent border-0 focus:outline-none focus:ring-0 focus:bg-white rounded-full">
+                               class="flex-1 px-3 py-3 sm:px-8 sm:py-4 text-base sm:text-xl font-body text-gray-700 placeholder-gray-400 bg-transparent border-0 focus:outline-none focus:ring-0 focus:bg-white rounded-full">
                         <button type="submit"
-                                class="bg-primary-blue text-white px-8 py-4 rounded-full hover:bg-dark-blue transition-all duration-300 font-semibold font-body text-lg flex items-center space-x-2 shadow-lg">
-                            <span>Check URL</span>
+                                class="bg-primary-blue text-white px-4 py-3 sm:px-8 sm:py-4 rounded-full hover:bg-dark-blue transition-all duration-300 font-semibold font-body text-sm sm:text-lg flex items-center space-x-1 sm:space-x-2 shadow-lg">
+                            <span class="hidden sm:inline">Check URL</span>
+                            <span class="sm:hidden">Check</span>
                             <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M7.79167 11.9167C8.95278 11.9167 9.93056 11.5194 10.725 10.725C11.5194 9.93056 11.9167 8.95278 11.9167 7.79167C11.9167 6.63056 11.5194 5.65278 10.725 4.85833C9.93056 4.06389 8.95278 3.66667 7.79167 3.66667C6.63056 3.66667 5.65278 4.06389 4.85833 4.85833C4.06389 5.65278 3.66667 6.63056 3.66667 7.79167C3.66667 8.95278 4.06389 9.93056 4.85833 10.725C5.65278 11.5194 6.63056 11.9167 7.79167 11.9167ZM7.79167 15.5833C5.62222 15.5833 3.78125 14.8271 2.26875 13.3146C0.756251 11.8021 0 9.96111 0 7.79167C0 5.62222 0.756251 3.78125 2.26875 2.26875C3.78125 0.756249 5.62222 -1.90735e-06 7.79167 -1.90735e-06C9.96111 -1.90735e-06 11.8021 0.756249 13.3146 2.26875C14.8271 3.78125 15.5833 5.62222 15.5833 7.79167C15.5833 8.49444 15.484 9.18958 15.2854 9.87708C15.0868 10.5646 14.7889 11.2139 14.3917 11.825L17.9667 15.4C18.3333 15.7667 18.509 16.1944 18.4937 16.6833C18.4785 17.1722 18.2875 17.6 17.9208 17.9667C17.5542 18.3028 17.1264 18.4785 16.6375 18.4938C16.1486 18.509 15.7208 18.3333 15.3542 17.9667L11.825 14.4375C11.2139 14.8347 10.5646 15.125 9.87708 15.3083C9.18958 15.4917 8.49444 15.5833 7.79167 15.5833Z" fill="white"/>
                             </svg>
@@ -263,23 +274,23 @@
         </div>
 
         <!-- Results Section (appears below the form) -->
-        <div id="results-section" class="hidden max-w-7xl mx-auto mt-12">
+        <div id="results-section" class="hidden max-w-7xl mx-auto mt-8 sm:mt-12 mb-12 sm:mb-16 px-4 sm:px-6">
             <!-- Tab Navigation -->
             <div class="flex" style="margin-bottom: -4px;">
-                <button id="tab-overview" class="tab-button active px-6 py-3 font-semibold font-heading rounded-tl-lg rounded-tr-lg border-2 border-gray-200 bg-dark-blue text-white" style="font-size: 30px;">
+                <button id="tab-overview" class="tab-button active px-4 sm:px-6 py-2 sm:py-3 font-semibold font-heading rounded-tl-lg rounded-tr-lg border-2 border-gray-200 bg-dark-blue text-white" style="font-size: 30px;">
                     Overview
                 </button>
-                <button id="tab-advanced" class="tab-button px-6 py-3 font-semibold font-heading rounded-tl-lg rounded-tr-lg border-2 border-gray-200 bg-white text-gray-700 ml-1" style="font-size: 30px;">
+                <button id="tab-advanced" class="tab-button px-4 sm:px-6 py-2 sm:py-3 font-semibold font-heading rounded-tl-lg rounded-tr-lg border-2 border-gray-200 bg-white text-gray-700 ml-1" style="font-size: 30px;">
                     Advanced
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column (2/3 width) - Tab Content Wrapper -->
-                <div class="lg:col-span-2 tab-content-wrapper">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Left Column (3/4 width) - Tab Content Wrapper -->
+                <div class="lg:col-span-3 tab-content-wrapper order-1 lg:order-1">
                     <!-- Overview Tab -->
-                    <div id="results-overview" class="tab-content bg-white rounded-lg shadow-md min-w-[52rem] w-full">
-                        <div class="p-6">
+                    <div id="results-overview" class="tab-content bg-white rounded-lg shadow-md w-full mb-10">
+                        <div class="p-4 sm:p-6">
                             <!-- Progress Indicators (inside Overview tab) -->
                             <div id="progress-container" class="mb-6 hidden">
                                 <div class="flex items-center justify-between mb-2">
@@ -310,8 +321,8 @@
                     </div>
 
                     <!-- Advanced Tab -->
-                    <div id="results-advanced" class="tab-content hidden bg-white rounded-lg shadow-md min-w-[52rem] w-full">
-                    <div class="p-6">
+                    <div id="results-advanced" class="tab-content hidden bg-white rounded-lg shadow-md w-full mb-10">
+                    <div class="p-4 sm:p-6">
                         <!-- Deep Check Progress indicator (inside Advanced tab) -->
                         <div id="deep-check-progress" class="mb-6 hidden">
                             <div class="flex items-center justify-between mb-2">
@@ -398,10 +409,10 @@
                 </div>
 
                 <!-- Right Column (1/3 width) -->
-                <div class="lg:col-span-1 min-w-[27rem]">
-                <div class="verdict-gauge text-center bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
-                    <div style="position: relative; width: 300px; height: 160px; margin: 0 auto;">
-                        <svg width="300" height="160" viewBox="0 0 300 160">
+                <div class="lg:col-span-1 order-2 lg:order-2">
+                <div class="verdict-gauge text-center bg-white rounded-lg shadow-md p-4 mb-6 animate-fadeIn">
+                    <div style="position: relative; max-width: 300px; width: 100%; margin: 0 auto;">
+                        <svg width="100%" height="auto" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid meet" style="display: block; margin: 0 auto;">
                             <!-- Background track -->
                             <path d="M 40 140 A 110 110 0 0 1 260 140"
                                 fill="none"
@@ -409,45 +420,37 @@
                                 stroke-width="16"
                                 stroke-linecap="round"/>
                             
-                            <!-- Red segment (0-50%) -->
+                            <!-- Red segment (0-50%): 180° to 105° with 10° gap -->
                             <path id="red-segment"
-                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                d="M 40 140 A 110 110 0 0 1 121.53 33.75"
                                 fill="none"
-                                stroke="#FFB3C6"
+                                stroke="#FF6B9D"
                                 stroke-width="16"
-                                stroke-linecap="round"
-                                stroke-dasharray="172.8 345.6"
-                                stroke-dashoffset="0"/>
-                            
-                            <!-- Yellow segment (50-70%) -->
+                                stroke-linecap="round"/>
+
+                            <!-- Yellow segment (50-70%): 95° to 65° with 10° gaps -->
                             <path id="yellow-segment"
-                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                d="M 140.41 30.42 A 110 110 0 0 1 196.49 40.31"
                                 fill="none"
-                                stroke="#FFF2CC"
+                                stroke="#FFD93D"
                                 stroke-width="16"
-                                stroke-linecap="round"
-                                stroke-dasharray="69.1 345.6"
-                                stroke-dashoffset="-172.8"/>
-                            
-                            <!-- Light Green segment (70-90%) -->
+                                stroke-linecap="round"/>
+
+                            <!-- Light Green segment (70-90%): 55° to 25° with 10° gaps -->
                             <path id="light-green-segment"
-                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                d="M 213.09 49.89 A 110 110 0 0 1 249.69 93.51"
                                 fill="none"
-                                stroke="#C8E6C9"
+                                stroke="#4CAF50"
                                 stroke-width="16"
-                                stroke-linecap="round"
-                                stroke-dasharray="69.1 345.6"
-                                stroke-dashoffset="-241.9"/>
-                            
-                            <!-- Bright Green segment (90-100%) -->
+                                stroke-linecap="round"/>
+
+                            <!-- Bright Green segment (90-100%): 15° to 0° with 10° gap -->
                             <path id="bright-green-segment"
-                                d="M 40 140 A 110 110 0 0 1 260 140"
+                                d="M 256.25 111.53 A 110 110 0 0 1 260 140"
                                 fill="none"
-                                stroke="#A5D6A7"
+                                stroke="#22c55e"
                                 stroke-width="16"
-                                stroke-linecap="round"
-                                stroke-dasharray="34.6 345.6"
-                                stroke-dashoffset="-311"/>
+                                stroke-linecap="round"/>
                             
                             <!-- Score indicator dot -->
                             <circle class="verdict-indicator" 
@@ -466,7 +469,7 @@
                     </div>
                 </div>
                 <!-- Screenshot Section -->
-                <div id="screenshot-section" class="hidden bg-white rounded-lg shadow-md p-4 mb-4 animate-fadeIn">
+                <div id="screenshot-section" class="hidden bg-white rounded-lg shadow-md p-4 mb-6 animate-fadeIn">
                     <div class="relative rounded-lg overflow-hidden shadow-2xl" style="width: 100%; aspect-ratio: 16/10; padding: 5px; background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(255,255,255,1) 100%);">
                         <div class="relative w-full h-full rounded-md overflow-hidden bg-gray-100">
                             <!-- BlurHash Canvas (blurred placeholder) - now visible by default -->
@@ -510,48 +513,53 @@
     </header>
 
     <!-- Footer -->
-    <div class="text-center text-gray-500 text-sm p-6 font-body">
+    <div class="text-center text-gray-500 text-sm py-12 sm:py-16 px-6 font-body">
         <p>Mwb Winter Hackathon 2025 - GO!</p>
     </div>
 
     <script>
-        let eventSource = null;
-        let scamGuardTextBuffer = ''; // Buffer for accumulating ScamGuard text
-        let scamGuardVerdict = ''; // Store verdict separately to avoid duplication
-        let timingData = {}; // Collect timing data as it arrives
+        // Event sources and controllers
+        let overviewEventSource = null;
+        let deepCheckController = null;
+        let deepCheckTimeout = null;
+        let deepCheckIdleTimer = null;
+
+        // Check state flags
+        let isOverviewComplete = false;
+        let isDeepCheckComplete = false;
+        let isDeepCheckRunning = false;
+        let isDeepCheckUIFinalized = false;
+        let deepCheckProgress = 0;
+        let deepCheckGotSecurityScore = false;
+        let isURLMalicious = false;
+        let isURLError = false;
+
+        // Existing variables
+        let scamGuardTextBuffer = '';
+        let scamGuardVerdict = '';
+        let timingData = {};
+        let currentAnalysisURL = '';
+        let gaugeAnimationRunning = false;
 
         // Check if marked.js is loaded
         if (typeof marked === 'undefined') {
             console.error('marked.js library is not loaded!');
         }
 
-        // Store current URL for screenshot functionality
-        let currentAnalysisURL = '';
-        let gaugeAnimationRunning = false; // Prevent multiple gauge animations
-        let currentURLMalicious = false; // Track if current URL is malicious
-
         // Function to handle URL analysis
         function handleURLSubmission(url) {
             if (!url) return;
 
+            // 1. Abort any existing checks
+            abortAllChecks();
+
+            // 2. Reset all state
+            resetAllState();
+
             // Store URL for screenshot functionality
             currentAnalysisURL = url;
 
-            // Reset malicious flag for new URL
-            currentURLMalicious = false;
-
-            // Re-enable advanced tab in case it was disabled
-            const advancedTab = document.getElementById('tab-advanced');
-            if (advancedTab) {
-                advancedTab.disabled = false;
-                advancedTab.classList.remove('opacity-50', 'cursor-not-allowed');
-                advancedTab.classList.add('hover:bg-gray-100');
-
-                // Re-add event listener
-                advancedTab.addEventListener('click', () => switchTab('advanced'));
-            }
-
-            // Get current tab from URL params or default to overview
+            // Get current tab from URL params
             const urlParams = new URLSearchParams(window.location.search);
             const currentTab = urlParams.get('tab') || 'overview';
 
@@ -559,142 +567,87 @@
             console.log('URL:', url);
             console.log('Current tab:', currentTab);
 
+            // Re-enable advanced tab (in case it was disabled)
+            const advancedTab = document.getElementById('tab-advanced');
+            if (advancedTab) {
+                advancedTab.disabled = false;
+                advancedTab.classList.remove('opacity-50', 'cursor-not-allowed');
+                advancedTab.classList.add('hover:bg-gray-100');
+                // Re-add event listener (replace to avoid duplicates)
+                const newAdvancedTab = advancedTab.cloneNode(true);
+                newAdvancedTab.addEventListener('click', () => switchTab('advanced'));
+                advancedTab.parentNode.replaceChild(newAdvancedTab, advancedTab);
+            }
+
             // Update URL with query parameters
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('url', url);
             newUrl.searchParams.set('tab', currentTab);
             window.history.replaceState({}, '', newUrl.toString());
-            console.log('URL updated to:', window.location.href);
 
-            // Remove vertical centering to prevent jump (do this BEFORE showing results)
+            // Remove vertical centering
             const header = document.getElementById('initial-form');
             if (header.classList.contains('justify-center')) {
                 header.classList.remove('justify-center', 'min-h-screen');
                 header.classList.add('justify-start', 'pt-20');
             }
 
-            // Show results section below the form
+            // Show results section
             document.getElementById('results-section').classList.remove('hidden');
 
-            // Restore tab state after results section is shown (if different from overview)
-            if (currentTab === 'advanced') {
-                switchTab('advanced', true); // true = skip initial deep check
-            }
-
-            // Clear previous results and hide sections
+            // Reset overview UI
             document.getElementById('results').innerHTML = '';
             document.getElementById('screenshot-section').classList.add('hidden');
-            timingData = {}; // Reset timing data
-
-            // Show progress and loading
             document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('progress-bar').style.width = '10%';
+            document.getElementById('progress-message').textContent = 'Starting check...';
 
-            // Disabled auto-scroll to prevent content jump
-            // setTimeout(() => {
-            //     const progressContainer = document.getElementById('progress-container');
-            //     const rect = progressContainer.getBoundingClientRect();
-            //     const offset = window.pageYOffset + rect.top - 50; // Extra 50px scroll
+            // Reset overview badges with original labels
+            const overviewLabels = {
+                'dns': 'DNS',
+                'tcp': 'TCP',
+                'tls': 'TLS',
+                'response': 'Response',
+                'scamguard': 'AI'
+            };
 
-            //     window.scrollTo({
-            //         top: offset,
-            //         behavior: 'smooth'
-            //     });
-            // }, 100);
-
-            // Reset all stages
             ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
                 const el = document.getElementById('stage-' + stage);
                 el.classList.remove('stage-complete', 'stage-active', 'stage-error');
+                el.textContent = overviewLabels[stage]; // Reset to original text
             });
 
-            // Reset and hide ScamGuard stream
+            // Reset ScamGuard stream
             document.getElementById('scamguard-stream').classList.add('hidden');
             document.getElementById('scamguard-text').innerHTML = '';
-            scamGuardTextBuffer = '';
-            scamGuardVerdict = '';
 
-            // Reset gauge animation state
-            gaugeAnimationRunning = false;
+            // Reset screenshot
+            resetScreenshot();
 
-            // Reset screenshot to initial state
-            const canvas = document.getElementById('blurhash-canvas');
-            const img = document.getElementById('screenshot-img');
-            const loading = document.getElementById('screenshot-loading');
-            if (canvas) {
-                // Clear any previous canvas content
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                // Hide canvas until new blurhash is rendered to prevent flash of empty canvas
-                canvas.style.opacity = '0';
-            }
-            if (img) {
-                img.src = '';
-                img.style.opacity = '0';
-            }
-            if (loading) {
-                // Show loader immediately until blurhash loads
-                loading.style.display = 'flex';
-                loading.innerHTML = '<div class="flex flex-col items-center"><svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="mt-2 text-xs text-gray-600">Capturing...</span></div>';
+            // Reset deep check UI
+            resetDeepCheckUI();
+
+            // Switch to the correct tab (but don't trigger deep check yet)
+            if (currentTab === 'advanced') {
+                // Show advanced tab content
+                document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                document.getElementById('tab-advanced').classList.add('active');
+                document.getElementById('results-advanced').classList.remove('hidden');
+
+                // Show progress bar immediately so user doesn't see empty tab
+                document.getElementById('deep-check-progress').classList.remove('hidden');
+                document.getElementById('deep-check-bar').style.width = '0%';
+                document.getElementById('deep-check-status').textContent = 'Waiting for URL check...';
             }
 
-            // Close existing connection
-            if (eventSource) {
-                eventSource.close();
+            // 3. ALWAYS start overview check
+            startOverviewCheck(url);
+
+            // 4. If on Advanced tab, also start deep-check in parallel (small delay)
+            if (currentTab === 'advanced') {
+                setTimeout(() => startDeepCheck(url), 100);
             }
-
-            // Always reset deep check when new URL is submitted
-            console.log('Resetting deep check for new URL:', url);
-
-            // Reset deep check state to allow restart
-            deepCheckRunning = false;
-
-            // Cancel existing deep check request
-            if (deepCheckAbortController) {
-                console.log('Aborting previous deep check request');
-                deepCheckAbortController.abort();
-                deepCheckAbortController = null;
-            }
-
-            // Reset deep check data
-            deepCheckData = {
-                links: [], images: [], requests: [], trackers: [],
-                technologies: [], securityIssues: { critical: [], high: [], medium: [], low: [] }
-            };
-
-            // Hide deep check progress
-            document.getElementById('deep-check-progress').classList.add('hidden');
-
-            // Reset stage badges
-            ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
-                const el = document.getElementById('stage-' + stage);
-                if (el) {
-                    el.classList.remove('stage-complete', 'stage-active', 'stage-error');
-                }
-            });
-
-            // Hide all sections
-            ['links', 'images', 'requests', 'trackers', 'technologies', 'security'].forEach(section => {
-                document.getElementById('section-' + section).classList.add('hidden');
-            });
-
-            // Clear all lists
-            document.getElementById('links-list').innerHTML = '';
-            document.getElementById('images-list').innerHTML = '';
-            document.getElementById('requests-list').innerHTML = '';
-            document.getElementById('trackers-list').innerHTML = '';
-            document.getElementById('technologies-list').innerHTML = '';
-            ['critical', 'high', 'medium', 'low'].forEach(severity => {
-                document.getElementById(severity + '-list').innerHTML = '';
-                document.getElementById('issues-' + severity).classList.add('hidden');
-            });
-
-            // Create EventSource for SSE
-            const params = new URLSearchParams({ url: url });
-            eventSource = new EventSource('/ui/stream?' + params.toString());
-
-            // Continue with existing event source handlers...
-            setupEventSourceHandlers();
         }
 
         // Handle initial form submission
@@ -706,64 +659,80 @@
 
 
 
-        // Setup event source handlers
-        function setupEventSourceHandlers() {
-            // Handle different event types
+        // Start overview check - creates EventSource and handles all events
+        function startOverviewCheck(url) {
+            console.log('Starting overview check for:', url);
+
+            const params = new URLSearchParams({ url: url });
+            overviewEventSource = new EventSource('/ui/stream?' + params.toString());
 
             // Handle different event types
-            eventSource.addEventListener('start', function(e) {
+            overviewEventSource.addEventListener('start', function(e) {
                 document.getElementById('progress-message').textContent = 'Starting check...';
                 document.getElementById('progress-bar').style.width = '10%';
             });
 
-            eventSource.addEventListener('dns', function(e) {
+            overviewEventSource.addEventListener('dns', function(e) {
                 const data = JSON.parse(e.data);
-                document.getElementById('stage-dns').classList.add('stage-complete');
+                const dnsEl = document.getElementById('stage-dns');
+                dnsEl.classList.add('stage-complete');
+                if (!dnsEl.textContent.includes('✓')) {
+                    dnsEl.textContent = '✓ DNS';
+                }
                 document.getElementById('progress-message').textContent = 'DNS resolved (' + data.data.dns_ms + 'ms)';
                 document.getElementById('progress-bar').style.width = '30%';
-                timingData.dns_ms = data.data.dns_ms; // Store DNS timing
+                timingData.dns_ms = data.data.dns_ms;
             });
 
-            eventSource.addEventListener('tcp', function(e) {
+            overviewEventSource.addEventListener('tcp', function(e) {
                 const data = JSON.parse(e.data);
-                document.getElementById('stage-tcp').classList.add('stage-complete');
+                const tcpEl = document.getElementById('stage-tcp');
+                tcpEl.classList.add('stage-complete');
+                if (!tcpEl.textContent.includes('✓')) {
+                    tcpEl.textContent = '✓ TCP';
+                }
                 document.getElementById('progress-message').textContent = 'Connected (' + data.data.connect_ms + 'ms)';
                 document.getElementById('progress-bar').style.width = '50%';
-                timingData.connect_ms = data.data.connect_ms; // Store TCP timing
+                timingData.connect_ms = data.data.connect_ms;
             });
 
-            eventSource.addEventListener('tls', function(e) {
+            overviewEventSource.addEventListener('tls', function(e) {
                 const data = JSON.parse(e.data);
-                document.getElementById('stage-tls').classList.add('stage-complete');
+                const tlsEl = document.getElementById('stage-tls');
+                tlsEl.classList.add('stage-complete');
+                if (!tlsEl.textContent.includes('✓')) {
+                    tlsEl.textContent = '✓ TLS';
+                }
                 document.getElementById('progress-message').textContent = 'TLS handshake complete (' + data.data.tls_ms + 'ms)';
                 document.getElementById('progress-bar').style.width = '70%';
-                timingData.tls_ms = data.data.tls_ms; // Store TLS timing
+                timingData.tls_ms = data.data.tls_ms;
             });
 
-            eventSource.addEventListener('response', function(e) {
+            overviewEventSource.addEventListener('response', function(e) {
                 const data = JSON.parse(e.data);
-                document.getElementById('stage-response').classList.add('stage-complete');
+                const responseEl = document.getElementById('stage-response');
+                responseEl.classList.add('stage-complete');
+                if (!responseEl.textContent.includes('✓')) {
+                    responseEl.textContent = '✓ Response';
+                }
                 document.getElementById('progress-message').textContent = 'Got response (status: ' + data.data.status + ')';
                 document.getElementById('progress-bar').style.width = '90%';
-
-                // Store TTFB timing
                 if (data.data.ttfb_ms) {
                     timingData.ttfb_ms = data.data.ttfb_ms;
                 }
-                const totalMs = data.data.total_ms;
 
-                // Trigger screenshot loading immediately after response
+                // Trigger screenshot loading
                 document.getElementById('screenshot-section').classList.remove('hidden');
                 loadScreenshot(currentAnalysisURL);
             });
 
-            eventSource.addEventListener('redirect', function(e) {
+            overviewEventSource.addEventListener('redirect', function(e) {
                 const data = JSON.parse(e.data);
                 document.getElementById('progress-message').textContent = 'Following redirect (hop ' + data.data.hop + ')...';
             });
 
-            // ScamGuard event handlers
-            eventSource.addEventListener('scamguard.started', function(e) {
+            // ScamGuard events
+            overviewEventSource.addEventListener('scamguard.started', function(e) {
                 document.getElementById('stage-scamguard').classList.add('stage-active');
                 document.getElementById('scamguard-stream').classList.remove('hidden');
                 scamGuardTextBuffer = 'Starting AI analysis...';
@@ -771,20 +740,17 @@
                 textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
             });
 
-            eventSource.addEventListener('scamguard.scanning', function(e) {
+            overviewEventSource.addEventListener('scamguard.scanning', function(e) {
                 scamGuardTextBuffer = 'Analyzing URL for security threats...';
                 const textEl = document.getElementById('scamguard-text');
                 textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
             });
 
-            eventSource.addEventListener('scamguard.verdict', function(e) {
+            overviewEventSource.addEventListener('scamguard.verdict', function(e) {
                 const data = JSON.parse(e.data);
                 if (data.data && data.data.verdict) {
                     const verdict = data.data.verdict;
-
-                    // Store the verdict globally for the gauge
                     window.currentVerdict = verdict;
-
                     switch(verdict) {
                         case 'safe':
                             scamGuardVerdict = '**✓ Verdict: Safe**';
@@ -798,290 +764,199 @@
                         default:
                             scamGuardVerdict = '**Verdict: ' + verdict + '**';
                     }
-                    // Don't add verdict to buffer yet - it will be added when displaying
-
-                    // Store verdict but don't animate yet - wait for completion
-                    console.log('Verdict received:', verdict, '- waiting for completion to animate');
                 }
             });
 
-            eventSource.addEventListener('scamguard.text', function(e) {
+            overviewEventSource.addEventListener('scamguard.text', function(e) {
                 const data = JSON.parse(e.data);
                 if (data.data && data.data.text) {
-                    // Append text delta to the buffer
                     scamGuardTextBuffer += data.data.text;
-
-                    // Check if the text already contains the verdict to avoid duplication
                     const hasVerdictInText = scamGuardTextBuffer.includes('Verdict:');
-
-                    // Render markdown with verdict at the top (if we have it and it's not already in the text)
                     const textEl = document.getElementById('scamguard-text');
                     const fullText = (scamGuardVerdict && !hasVerdictInText) ?
                         scamGuardVerdict + '\n\n' + scamGuardTextBuffer :
                         scamGuardTextBuffer;
-
                     if (typeof marked !== 'undefined') {
                         textEl.innerHTML = marked.parse(fullText);
                     } else {
-                        // Fallback: convert newlines to <br> tags
                         textEl.innerHTML = fullText.replace(/\n/g, '<br>');
                     }
-
-                    // Auto-scroll to bottom
                     const streamEl = document.getElementById('scamguard-stream');
                     streamEl.scrollTop = streamEl.scrollHeight;
                 }
             });
 
-            eventSource.addEventListener('scamguard.completed', function(e) {
-                document.getElementById('stage-scamguard').classList.remove('stage-active');
-                document.getElementById('stage-scamguard').classList.add('stage-complete');
+            overviewEventSource.addEventListener('scamguard.completed', function(e) {
+                const badge = document.getElementById('stage-scamguard');
+                if (badge) {
+                    badge.classList.remove('stage-active', 'stage-error');
+                    badge.classList.add('stage-complete');
+                    if (!badge.textContent.includes('✓')) {
+                        badge.textContent = '✓ AI';
+                    }
+                }
             });
 
-            eventSource.addEventListener('scamguard.error', function(e) {
+            overviewEventSource.addEventListener('scamguard.error', function(e) {
                 const data = JSON.parse(e.data);
-                document.getElementById('stage-scamguard').classList.remove('stage-active');
-                document.getElementById('stage-scamguard').classList.add('stage-error');
-
+                const badge = document.getElementById('stage-scamguard');
+                if (badge) {
+                    badge.classList.remove('stage-active', 'stage-complete');
+                    badge.classList.add('stage-error');
+                }
                 const errorMsg = data.data && data.data.error ? data.data.error : 'Analysis failed';
                 scamGuardTextBuffer = '⚠ ' + errorMsg;
                 const textEl = document.getElementById('scamguard-text');
-                textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
+                if (textEl) {
+                    textEl.innerHTML = (typeof marked !== 'undefined') ? marked.parse(scamGuardTextBuffer) : scamGuardTextBuffer;
+                }
             });
 
-            eventSource.addEventListener('malicious', function(e) {
-                // The data contains JSON-encoded HTML - parse it
-                try {
-                    console.log('Malicious event received:', e.data);
+            // CRITICAL: Malicious URL handler - abort deep check
+            overviewEventSource.addEventListener('malicious', function(e) {
+                console.log('Malicious URL detected - aborting deep check');
+                isURLMalicious = true;
 
-                    // Clear and hide all other UI elements
-                    document.getElementById('progress-container').classList.add('hidden');
-                    document.getElementById('scamguard-stream').classList.add('hidden');
-                    document.getElementById('scamguard-text').innerHTML = '';
+                // Abort deep check if running
+                abortDeepCheck();
 
-                    // Only show the security warning notification
-                    document.getElementById('results').innerHTML = `
-                        <div class="bg-red-50 border-2 border-red-300 rounded-lg p-6">
-                            <div class="flex items-start">
-                                <svg class="w-8 h-8 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                </svg>
-                                <div>
-                                    <h3 class="text-lg font-bold text-red-800 mb-2">Security Warning</h3>
-                                    <p class="text-red-700">This URL was flagged as potentially malicious by Malwarebytes URL Checker</p>
-                                </div>
+                // Hide overview UI
+                document.getElementById('progress-container').classList.add('hidden');
+                document.getElementById('scamguard-stream').classList.add('hidden');
+
+                // Show security warning
+                document.getElementById('results').innerHTML = `
+                    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-6">
+                        <div class="flex items-start">
+                            <svg class="w-8 h-8 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <div>
+                                <h3 class="text-lg font-bold text-red-800 mb-2">Security Warning</h3>
+                                <p class="text-red-700">This URL was flagged as potentially malicious by Malwarebytes URL Checker</p>
                             </div>
                         </div>
-                    `;
+                    </div>
+                `;
 
-                    // Disable the advanced tab (grey it out)
-                    const advancedTab = document.getElementById('tab-advanced');
-                    if (advancedTab) {
-                        advancedTab.disabled = true;
-                        advancedTab.classList.add('opacity-50', 'cursor-not-allowed');
-                        advancedTab.classList.remove('hover:bg-gray-100');
+                // Disable advanced tab
+                disableAdvancedTab();
 
-                        // Remove click event listener
-                        advancedTab.replaceWith(advancedTab.cloneNode(true));
-                    }
+                // Update verdict gauge
+                setTimeout(() => window.updateVerdictGauge('malicious'), 100);
 
-                    // Update verdict gauge to show malicious
-                    setTimeout(function() {
-                        if (typeof window.updateVerdictGauge === 'function') {
-                            window.updateVerdictGauge('malicious');
+                // Close event source
+                if (overviewEventSource) {
+                    overviewEventSource.close();
+                    overviewEventSource = null;
+                }
+            });
+
+            // Final verdict handler
+            overviewEventSource.addEventListener('final_verdict', function(e) {
+                try {
+                    const verdictData = JSON.parse(e.data);
+                    if (verdictData.data) {
+                        const verdict = verdictData.data;
+                        let gaugeVerdict = 'unknown';
+                        switch(verdict.verdict) {
+                            case 'safe':
+                            case 'mostly_safe':
+                                gaugeVerdict = 'safe';
+                                break;
+                            case 'caution':
+                                gaugeVerdict = 'unknown';
+                                break;
+                            case 'suspicious':
+                                gaugeVerdict = 'suspicious';
+                                break;
+                            case 'dangerous':
+                                gaugeVerdict = 'malicious';
+                                break;
                         }
-                    }, 100);
-
-                    // Store flag that URL is malicious
-                    currentURLMalicious = true;
-
+                        window.updateVerdictGauge(gaugeVerdict);
+                        window.currentVerdict = gaugeVerdict;
+                        window.verdictScore = verdict.score;
+                    }
                 } catch (err) {
-                    console.error('Failed to parse malicious event:', err, 'Raw data:', e.data);
-                    document.getElementById('results').innerHTML = `
-                        <div class="bg-red-50 border-2 border-red-300 rounded-lg p-6">
-                            <div class="flex items-start">
-                                <svg class="w-8 h-8 text-red-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                </svg>
-                                <div>
-                                    <h3 class="text-lg font-bold text-red-800 mb-2">Security Warning</h3>
-                                    <p class="text-red-700">This URL was flagged as potentially malicious by Malwarebytes URL Checker</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    console.error('Failed to parse final verdict:', err);
                 }
 
-                // Close the connection
-                eventSource.close();
-                eventSource = null;
+                // Close event source after final verdict
+                if (overviewEventSource) {
+                    overviewEventSource.close();
+                    overviewEventSource = null;
+                }
             });
 
-            eventSource.addEventListener('complete', function(e) {
-                // Check if we should start deep check after basic check completes
-                const urlParams = new URLSearchParams(window.location.search);
-                const currentTab = urlParams.get('tab');
+            // Complete handler
+            overviewEventSource.addEventListener('complete', function(e) {
+                isOverviewComplete = true;
 
-                if (currentTab === 'advanced' && currentAnalysisURL && !deepCheckRunning) {
-                    console.log('Basic check complete, starting deep check for advanced tab');
-                    setTimeout(() => startDeepCheck(currentAnalysisURL), 500);
-                }
-                // Parse the complete event data
                 try {
-                    console.log('Complete event received:', e.data);
                     const data = JSON.parse(e.data);
-
-                    // Check if data is a string (rendered template) or object (raw data)
                     if (typeof data === 'string') {
-                        // It's the rendered HTML template - display it
                         document.getElementById('results').innerHTML = data;
-
-                        // Extract verdict from the HTML - look for the verdict assignment in the script
-                        let verdictMatch = data.match(/verdict = '(\w+)'/);
-                        let detectedVerdict = 'safe'; // default for successful checks
-
-                        if (verdictMatch && verdictMatch[1]) {
-                            detectedVerdict = verdictMatch[1];
-                        }
-
-                        // Also check if ScamGuard verdict is available
-                        if (window.currentVerdict) {
-                            detectedVerdict = window.currentVerdict;
-                        }
-
-                        console.log('Detected verdict from HTML:', detectedVerdict);
-
-                        // Now manually run the verdict update since scripts don't execute from innerHTML
-                        setTimeout(function() {
-                            // Find and update the verdict elements directly
-                            const indicator = document.querySelector('.verdict-indicator');
-                            const statusEl = document.querySelector('.verdict-status');
-                            const textEl = document.querySelector('.verdict-text');
-
-                            if (indicator && statusEl && textEl) {
-                                let x, y, statusText, descText;
-
-                                switch(detectedVerdict) {
-                                    case 'bad':
-                                        x = 20; y = 100;
-                                        statusText = 'bad';
-                                        descText = "If you already entered in this website, don't take a risk.";
-                                        break;
-                                    case 'safe':
-                                        x = 180; y = 100;
-                                        statusText = 'safe';
-                                        descText = 'No threats detected, this link appears safe.';
-                                        break;
-                                    default:
-                                        x = 100; y = 20;
-                                        statusText = 'uncertain';
-                                        descText = "Something doesn't look right, proceed carefully.";
-                                        break;
-                                }
-
-                                // Use updateVerdictGauge instead of manual positioning
-                                if (typeof window.updateVerdictGauge === 'function') {
-                                    window.updateVerdictGauge(detectedVerdict);
-                                }
-                            }
-                        }, 100);
-
-                        // Mark ALL stages as complete when check is done
-                        ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
-                            const el = document.getElementById('stage-' + stage);
-                            if (el) {
-                                el.classList.remove('stage-active', 'stage-error');
-                                el.classList.add('stage-complete');
-                            }
-                        });
-                        document.getElementById('progress-bar').style.width = '100%';
-                        document.getElementById('progress-message').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Check complete!';
-
-                        // NOW animate the gauge - everything is complete
-                        setTimeout(function() {
-                            if (typeof window.updateVerdictGauge === 'function' && detectedVerdict) {
-                                console.log('Analysis complete - animating gauge with verdict:', detectedVerdict);
-                                window.updateVerdictGauge(detectedVerdict);
-                            }
-                        }, 200);
-
-                        // Keep progress container visible after completion
-
-                        // Close the connection
-                        eventSource.close();
-                        eventSource = null;
-                        return;
                     }
-
-                    // Otherwise handle as raw JSON data (legacy path)
-                    console.log('Complete event data (legacy JSON):', data); // Debug log
-
-                    // Update verdict gauge with the final verdict if available (legacy path)
-                    setTimeout(function() {
-                        if (typeof window.updateVerdictGauge === 'function') {
-                            // Use stored verdict from scamguard or default to unknown
-                            const finalVerdict = window.currentVerdict || 'unknown';
-                            console.log('Legacy path - animating gauge with verdict:', finalVerdict);
-                            window.updateVerdictGauge(finalVerdict);
-                        }
-                    }, 100);
-
-                    // Removed TLS and Details sections code as requested
-
                 } catch (err) {
-                    console.error('Failed to parse complete event data:', err);
+                    console.error('Failed to parse complete event:', err);
                 }
 
-                // Mark ALL stages as complete when check is done
-                ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
-                    const el = document.getElementById('stage-' + stage);
-                    if (el) {
-                        el.classList.remove('stage-active', 'stage-error');
-                        el.classList.add('stage-complete');
-                    }
-                });
+                // Mark all overview badges complete
+                cleanupOverviewBadges(true);
                 document.getElementById('progress-bar').style.width = '100%';
-                document.getElementById('progress-message').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Check complete!';
-                // Keep progress container visible after completion
+                document.getElementById('progress-message').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Check complete!';
 
-                // Close the connection
-                eventSource.close();
-                eventSource = null;
+                // Update gauge if we have a verdict
+                if (window.currentVerdict) {
+                    setTimeout(() => window.updateVerdictGauge(window.currentVerdict), 200);
+                }
             });
 
-            eventSource.addEventListener('error', function(e) {
-                // Show error in the results section
-                let errorMessage = 'Check failed';
+            // Error handler
+            overviewEventSource.addEventListener('error', function(e) {
+                isURLError = true;
+
+                // Abort deep check if running
+                abortDeepCheck();
+
+                let hideOverviewProgress = false;
+
                 try {
                     const errorData = JSON.parse(e.data);
-                    if (errorData.message) {
-                        errorMessage = errorData.message;
-                    } else if (typeof errorData === 'string') {
-                        // If it's HTML, show it in results
+                    if (typeof errorData === 'string') {
                         document.getElementById('results').innerHTML = errorData;
+                        if (errorData.includes('Unable to Check URL')) {
+                            hideOverviewProgress = true;
+                        }
                     }
                 } catch (err) {
-                    // Default error message
+                    // Default error handling
+                    document.getElementById('progress-message').textContent = 'Error: Check failed';
                 }
 
-                document.getElementById('progress-message').textContent = 'Error: ' + errorMessage;
-                document.getElementById('progress-bar').style.backgroundColor = '#ef4444';
+                if (hideOverviewProgress) {
+                    document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('scamguard-stream').classList.add('hidden');
+                }
 
-                // Keep progress container visible after error
-                document.getElementById('progress-bar').style.backgroundColor = '';
+                // Always disable advanced on errors so users see the overview message
+                disableAdvancedTab();
+                if (!isURLMalicious) {
+                    setTimeout(() => window.updateVerdictGauge('unknown'), 100);
+                }
 
-                if (eventSource) {
-                    eventSource.close();
-                    eventSource = null;
+                if (overviewEventSource) {
+                    overviewEventSource.close();
+                    overviewEventSource = null;
                 }
             });
 
-            // Handle connection errors
-            eventSource.onerror = function(e) {
+            overviewEventSource.onerror = function(e) {
                 console.error('EventSource connection error');
-                if (eventSource) {
-                    eventSource.close();
-                    eventSource = null;
+                if (overviewEventSource) {
+                    overviewEventSource.close();
+                    overviewEventSource = null;
                 }
             };
         }
@@ -1230,6 +1105,14 @@
             attemptScreenshot();
         }
 
+        // Helper function to get segment color based on score
+        function getSegmentColorByScore(score) {
+            if (score < 50) return '#FF6B9D';      // Red segment
+            if (score < 70) return '#FFD93D';      // Yellow segment
+            if (score < 90) return '#4CAF50';      // Light Green segment
+            return '#22c55e';                       // Bright Green segment
+        }
+
         // Update the new gauge based on verdict
         function updateVerdictGauge(verdict) {
             // Prevent multiple animations from running
@@ -1237,42 +1120,45 @@
                 console.log('Gauge animation already running, skipping...');
                 return;
             }
-            
+
             gaugeAnimationRunning = true;
-            
+
             let targetScore = 0;
-            let activeColor = '#FF6B9D';
             let statusText = 'loading...';
             let descText = 'Analyzing URL safety...';
 
-            // Convert verdict to score and determine active segment
+            // Convert verdict to score
             switch(verdict) {
                 case 'bad':
                 case 'malicious':
                     targetScore = 25; // Red segment
-                    activeColor = '#FF6B9D';
                     statusText = 'Dangerous';
                     descText = "If you already entered this website, don't take a risk.";
                     break;
                 case 'suspicious':
-                    targetScore = 60; // Yellow segment  
-                    activeColor = '#FFD93D';
+                    targetScore = 60; // Yellow segment
                     statusText = 'Suspicious';
                     descText = "Something doesn't look right, proceed carefully.";
                     break;
                 case 'safe':
                     targetScore = 95; // Bright green segment
-                    activeColor = '#22c55e';
                     statusText = 'Safe';
                     descText = 'No threats detected, this link appears safe.';
                     break;
+                case 'unknown':
+                    targetScore = 50; // Middle of arc (yellow segment)
+                    statusText = 'Unknown';
+                    descText = 'Unable to verify this URL';
+                    break;
                 default:
                     targetScore = 75; // Light green segment
-                    activeColor = '#6BCF7F';
                     statusText = 'Unknown';
                     descText = 'Unable to determine safety level.';
                     break;
             }
+
+            // Dynamically determine color based on score position
+            const activeColor = getSegmentColorByScore(targetScore);
 
             console.log('Starting gauge animation - Verdict:', verdict, 'Target Score:', targetScore, 'Color:', activeColor);
 
@@ -1282,24 +1168,8 @@
             const lightGreenSeg = document.getElementById('light-green-segment');
             const brightGreenSeg = document.getElementById('bright-green-segment');
 
-            if (redSeg && yellowSeg && lightGreenSeg && brightGreenSeg) {
-                // Reset all segments to inactive colors
-                redSeg.setAttribute('stroke', '#FF1744');
-                yellowSeg.setAttribute('stroke', '#FFC107');
-                lightGreenSeg.setAttribute('stroke', '#4CAF50');
-                brightGreenSeg.setAttribute('stroke', '#2E7D32');
-
-                // Activate the appropriate segment
-                if (targetScore < 50) {
-                    redSeg.setAttribute('stroke', '#FF1744');
-                } else if (targetScore < 70) {
-                    yellowSeg.setAttribute('stroke', '#FFC107');
-                } else if (targetScore < 90) {
-                    lightGreenSeg.setAttribute('stroke', '#4CAF50');
-                } else {
-                    brightGreenSeg.setAttribute('stroke', '#2E7D32');
-                }
-            }
+            // Keep all segments at their full vibrant colors - no dimming
+            // Segments maintain their original colors from SVG definition
 
             // Animate indicator from 0 to target score
             const indicator = document.querySelector('.verdict-indicator');
@@ -1359,97 +1229,197 @@
         // Make updateVerdictGauge available globally
         window.updateVerdictGauge = updateVerdictGauge;
 
+        // ========================================
+        // CLEANUP HELPER FUNCTIONS
+        // ========================================
 
-        // Tab switching functionality
-        function switchTab(tabName, skipDeepCheck = false) {
-            // Prevent switching to advanced tab if URL is malicious
-            if (tabName === 'advanced' && currentURLMalicious) {
-                console.log('Cannot switch to advanced tab - URL is malicious');
-                return;
+        // Clean up deep check badges - ALWAYS call on any exit path
+        function cleanupDeepCheckBadges(markComplete = false) {
+            const stageLabels = {
+                'parsing': 'Parsing',
+                'technologies': 'Technologies',
+                'trackers': 'Trackers',
+                'scripts': 'Scripts',
+                'security': 'Security'
+            };
+
+            ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
+                const el = document.getElementById('stage-' + stage);
+                if (el) {
+                    el.classList.remove('stage-active');  // ALWAYS stop animation
+                    if (markComplete) {
+                        el.classList.add('stage-complete');
+                        // Add checkmark if not already present
+                        if (!el.textContent.includes('✓')) {
+                            el.textContent = '✓ ' + stageLabels[stage];
+                        }
+                    }
+                }
+            });
+        }
+
+        // Finalize deep check UI in one place (avoids lingering blinking states)
+        function finalizeDeepCheckUI(statusText = 'Analysis complete') {
+            if (isDeepCheckUIFinalized) return;
+
+            const barEl = document.getElementById('deep-check-bar');
+            const statusEl = document.getElementById('deep-check-status');
+            if (deepCheckIdleTimer) {
+                clearTimeout(deepCheckIdleTimer);
+                deepCheckIdleTimer = null;
             }
 
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active');
-            });
-
-            // Hide all tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-
-            // Activate the selected tab button
-            document.getElementById('tab-' + tabName).classList.add('active');
-
-            // Show the selected tab content
-            document.getElementById('results-' + tabName).classList.remove('hidden');
-
-            // Update URL query parameters
-            const newUrl = new URL(window.location);
-            newUrl.searchParams.set('tab', tabName);
-            if (currentAnalysisURL) {
-                newUrl.searchParams.set('url', currentAnalysisURL);
+            if (barEl) {
+                barEl.style.width = '100%';
             }
-            window.history.replaceState({}, '', newUrl.toString());
+            if (statusEl && statusText) {
+                // Add checkmark icon to the status text
+                statusEl.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="inline mr-2"><path d="M21.8011 10C22.2578 12.2413 21.9323 14.5714 20.879 16.6018C19.8256 18.6322 18.108 20.2401 16.0126 21.1573C13.9172 22.0746 11.5707 22.2458 9.3644 21.6424C7.15807 21.039 5.22529 19.6974 3.88838 17.8414C2.55146 15.9854 1.89122 13.7272 2.01776 11.4434C2.14431 9.15954 3.04998 6.98809 4.58375 5.29117C6.11752 3.59425 8.18668 2.47443 10.4462 2.11845C12.7056 1.76248 15.0189 2.19186 17.0001 3.335" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 11L12 14L22 4" stroke="#1FD555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' + statusText;
+            }
 
-            // Start deep check if switching to advanced tab
-            if (tabName === 'advanced' && currentAnalysisURL && !skipDeepCheck && !deepCheckRunning) {
-                console.log('Tab switched to advanced, starting deep check for:', currentAnalysisURL);
-                setTimeout(() => startDeepCheck(currentAnalysisURL), 100);
+            cleanupDeepCheckBadges(true);
+            isDeepCheckUIFinalized = true;
+        }
+
+        // Clean up overview badges
+        function cleanupOverviewBadges(markComplete = false) {
+            const stageLabels = {
+                'dns': 'DNS',
+                'tcp': 'TCP',
+                'tls': 'TLS',
+                'response': 'Response',
+                'scamguard': 'AI'
+            };
+
+            ['dns', 'tcp', 'tls', 'response', 'scamguard'].forEach(stage => {
+                const el = document.getElementById('stage-' + stage);
+                if (el) {
+                    el.classList.remove('stage-active');
+                    if (markComplete) {
+                        el.classList.add('stage-complete');
+                        // Add checkmark if not already present
+                        if (!el.textContent.includes('✓')) {
+                            el.textContent = '✓ ' + stageLabels[stage];
+                        }
+                    }
+                }
+            });
+        }
+
+        // Abort deep check and clean up
+        function abortDeepCheck() {
+            if (deepCheckController) {
+                deepCheckController.abort();
+                deepCheckController = null;
+            }
+            if (deepCheckTimeout) {
+                clearTimeout(deepCheckTimeout);
+                deepCheckTimeout = null;
+            }
+            isDeepCheckRunning = false;
+            cleanupDeepCheckBadges(false);  // Don't mark complete, just stop animation
+        }
+
+        // Abort all checks
+        function abortAllChecks() {
+            if (overviewEventSource) {
+                overviewEventSource.close();
+                overviewEventSource = null;
+            }
+            abortDeepCheck();
+            cleanupOverviewBadges(false);
+        }
+
+        // Reset all state for new URL
+        function resetAllState() {
+            isOverviewComplete = false;
+            isDeepCheckComplete = false;
+            isDeepCheckRunning = false;
+            isDeepCheckUIFinalized = false;
+            deepCheckProgress = 0;
+            deepCheckGotSecurityScore = false;
+            isURLMalicious = false;
+            isURLError = false;
+            gaugeAnimationRunning = false;
+            scamGuardTextBuffer = '';
+            scamGuardVerdict = '';
+            timingData = {};
+            if (deepCheckIdleTimer) {
+                clearTimeout(deepCheckIdleTimer);
+                deepCheckIdleTimer = null;
             }
         }
 
-        // Add event listeners to tab buttons
-        document.getElementById('tab-overview').addEventListener('click', () => switchTab('overview'));
-        document.getElementById('tab-advanced').addEventListener('click', () => switchTab('advanced'));
+        // Disable advanced tab (and bounce back to overview if it was active)
+        function disableAdvancedTab() {
+            const advancedTab = document.getElementById('tab-advanced');
+            if (advancedTab) {
+                const shouldRedirect = advancedTab.classList.contains('active');
+                const clonedAdvancedTab = advancedTab.cloneNode(true);
+                clonedAdvancedTab.disabled = true;
+                clonedAdvancedTab.classList.add('opacity-50', 'cursor-not-allowed');
+                clonedAdvancedTab.classList.remove('hover:bg-gray-100');
+                advancedTab.replaceWith(clonedAdvancedTab);
 
-        // Deep Check Streaming
-        let deepCheckAbortController = null; // Changed from deepCheckEventSource
-        let deepCheckRunning = false;
-
-        // Track data for each section
-        let deepCheckData = {
-            links: [],
-            images: [],
-            requests: [],
-            trackers: [],
-            technologies: [],
-            securityIssues: { critical: [], high: [], medium: [], low: [] }
-        };
-
-        function startDeepCheck(url) {
-            console.log('=== startDeepCheck called ===');
-            console.log('URL:', url);
-            console.log('deepCheckRunning:', deepCheckRunning);
-
-            if (deepCheckRunning || !url) {
-                console.log('Returning early - deepCheckRunning:', deepCheckRunning, 'url:', url);
-                return;
+                if (shouldRedirect) {
+                    switchTab('overview', true);
+                }
             }
+        }
 
-            console.log('Starting deep check...');
-            deepCheckRunning = true;
+        // Reset screenshot state
+        function resetScreenshot() {
+            const canvas = document.getElementById('blurhash-canvas');
+            const img = document.getElementById('screenshot-img');
+            const loading = document.getElementById('screenshot-loading');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.style.opacity = '0';
+            }
+            if (img) {
+                img.src = '';
+                img.style.opacity = '0';
+            }
+            if (loading) {
+                loading.style.display = 'flex';
+                loading.innerHTML = '<div class="flex flex-col items-center"><svg class="animate-spin h-6 w-6 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="mt-2 text-xs text-gray-600">Capturing...</span></div>';
+            }
+        }
 
-            // Reset data
-            deepCheckData = {
-                links: [], images: [], requests: [], trackers: [],
-                technologies: [], securityIssues: { critical: [], high: [], medium: [], low: [] }
-            };
+        // Reset deep check UI
+        function resetDeepCheckUI() {
+            isDeepCheckUIFinalized = false;
 
-            // Show progress
-            document.getElementById('deep-check-progress').classList.remove('hidden');
+            // Hide deep check progress
+            document.getElementById('deep-check-progress').classList.add('hidden');
             document.getElementById('deep-check-bar').style.width = '0%';
             document.getElementById('deep-check-status').textContent = 'Initializing...';
+            deepCheckProgress = 0;
+            deepCheckGotSecurityScore = false;
+            if (deepCheckIdleTimer) {
+                clearTimeout(deepCheckIdleTimer);
+                deepCheckIdleTimer = null;
+            }
 
-            // Reset stage badges
+            // Reset stage badges with original labels
+            const stageLabels = {
+                'parsing': 'Parsing',
+                'technologies': 'Technologies',
+                'trackers': 'Trackers',
+                'scripts': 'Scripts',
+                'security': 'Security'
+            };
+
             ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
                 const el = document.getElementById('stage-' + stage);
                 if (el) {
                     el.classList.remove('stage-complete', 'stage-active', 'stage-error');
+                    el.textContent = stageLabels[stage]; // Reset to original text
                 }
             });
 
-            // Hide all sections initially
+            // Hide all sections
             ['links', 'images', 'requests', 'trackers', 'technologies', 'security'].forEach(section => {
                 document.getElementById('section-' + section).classList.add('hidden');
             });
@@ -1465,18 +1435,155 @@
                 document.getElementById('issues-' + severity).classList.add('hidden');
             });
 
-            // Cancel any existing connection
-            if (deepCheckAbortController) {
-                console.log('Aborting existing deep check');
-                deepCheckAbortController.abort();
+            // Reset deep check data
+            deepCheckData = {
+                links: [], images: [], requests: [], trackers: [],
+                technologies: [], securityIssues: { critical: [], high: [], medium: [], low: [] }
+            };
+        }
+
+        // Finish deep check and cleanup
+        function finishDeepCheck(success, statusText) {
+            if (deepCheckTimeout) {
+                clearTimeout(deepCheckTimeout);
+                deepCheckTimeout = null;
+            }
+            if (deepCheckIdleTimer) {
+                clearTimeout(deepCheckIdleTimer);
+                deepCheckIdleTimer = null;
+            }
+            isDeepCheckRunning = false;
+            isDeepCheckComplete = true;
+            deepCheckController = null;
+
+            if (success) {
+                finalizeDeepCheckUI(statusText || 'Analysis complete');
+            } else {
+                isDeepCheckUIFinalized = true;
+            }
+        }
+
+        // ========================================
+        // TAB SWITCHING
+        // ========================================
+
+        // Tab switching functionality
+        function switchTab(tabName, skipDeepCheck = false) {
+            // Prevent switching to advanced tab if URL is malicious or error
+            if (tabName === 'advanced' && (isURLMalicious || isURLError)) {
+                console.log('Cannot switch to advanced tab - URL is malicious or error');
+                return;
             }
 
-            // Create new AbortController for this request
-            deepCheckAbortController = new AbortController();
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
 
-            // Create new EventSource for deep-check endpoint
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Clean up overview badges when leaving overview tab (stop any blinking)
+            if (tabName !== 'overview') {
+                cleanupOverviewBadges(isOverviewComplete);
+            }
+
+            // Activate the selected tab button
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            // Show the selected tab content
+            document.getElementById('results-' + tabName).classList.remove('hidden');
+
+            // Update URL query parameters
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('tab', tabName);
+            if (currentAnalysisURL) {
+                newUrl.searchParams.set('url', currentAnalysisURL);
+            }
+            window.history.replaceState({}, '', newUrl.toString());
+
+            // Start deep check if switching to advanced tab and not already done
+            if (tabName === 'advanced' && currentAnalysisURL && !skipDeepCheck) {
+                if (!isDeepCheckRunning && !isDeepCheckComplete) {
+                    console.log('Tab switched to advanced, starting deep check');
+                    setTimeout(() => startDeepCheck(currentAnalysisURL), 100);
+                }
+            }
+        }
+
+        // Add event listeners to tab buttons
+        document.getElementById('tab-overview').addEventListener('click', () => switchTab('overview'));
+        document.getElementById('tab-advanced').addEventListener('click', () => switchTab('advanced'));
+
+        // Track data for each section
+        let deepCheckData = {
+            links: [],
+            images: [],
+            requests: [],
+            trackers: [],
+            technologies: [],
+            securityIssues: { critical: [], high: [], medium: [], low: [] }
+        };
+
+        function startDeepCheck(url) {
+            console.log('=== startDeepCheck called ===');
+            console.log('URL:', url);
+            console.log('isDeepCheckRunning:', isDeepCheckRunning);
+            console.log('isURLMalicious:', isURLMalicious);
+            console.log('isURLError:', isURLError);
+            deepCheckProgress = 0;
+            deepCheckGotSecurityScore = false;
+            if (deepCheckIdleTimer) {
+                clearTimeout(deepCheckIdleTimer);
+                deepCheckIdleTimer = null;
+            }
+
+            // Don't start if already running, malicious, or error
+            if (isDeepCheckRunning || !url || isURLMalicious || isURLError) {
+                console.log('Skipping deep check - conditions not met');
+                return;
+            }
+
+            console.log('Starting deep check...');
+            isDeepCheckRunning = true;
+            isDeepCheckComplete = false;
+
+            // Show progress
+            document.getElementById('deep-check-progress').classList.remove('hidden');
+            document.getElementById('deep-check-bar').style.width = '0%';
+            document.getElementById('deep-check-status').textContent = 'Initializing...';
+
+            // Reset stage badges
+            ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
+                const el = document.getElementById('stage-' + stage);
+                if (el) {
+                    el.classList.remove('stage-complete', 'stage-active', 'stage-error');
+                }
+            });
+
+            // Cancel any existing connection
+            if (deepCheckController) {
+                deepCheckController.abort();
+            }
+
+            // Create new AbortController
+            deepCheckController = new AbortController();
+
+            // Set safety timeout (70 seconds) - should be slightly higher than server default
+            if (deepCheckTimeout) clearTimeout(deepCheckTimeout);
+            deepCheckTimeout = setTimeout(() => {
+                if (isDeepCheckRunning) {
+                    console.log('Deep check safety timeout triggered');
+                    isDeepCheckRunning = false;
+                    isDeepCheckComplete = true;
+                    finalizeDeepCheckUI('Analysis timed out');
+                }
+            }, 70000);
+
+            // Start fetch
             const params = new URLSearchParams({ url: url });
-            // Use fetch with ReadableStream to handle SSE
             fetch('/deep-check?' + params.toString(), {
                 method: 'POST',
                 headers: {
@@ -1484,7 +1591,7 @@
                     'Accept': 'text/event-stream'
                 },
                 body: JSON.stringify({ url: url }),
-                signal: deepCheckAbortController.signal // Add abort signal
+                signal: deepCheckController.signal
             }).then(response => {
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -1495,32 +1602,27 @@
                     reader.read().then(({ done, value }) => {
                         if (done) {
                             console.log('Deep check stream completed');
-                            deepCheckRunning = false;
-                            deepCheckAbortController = null; // Clear controller on completion
+                            finalizeDeepCheckUI('Analysis complete');
+                            finishDeepCheck(true);
                             return;
                         }
 
                         buffer += decoder.decode(value, { stream: true });
                         const lines = buffer.split('\n');
-                        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+                        buffer = lines.pop() || '';
 
                         for (const line of lines) {
                             if (line.startsWith('event:')) {
                                 currentEvent = line.substring(6).trim();
-                            }
-                            else if (line.startsWith('data:')) {
+                            } else if (line.startsWith('data:')) {
                                 const eventData = line.substring(5).trim();
                                 if (eventData && currentEvent) {
                                     try {
                                         const data = JSON.parse(eventData);
-                                        // Create event object with stage and data
-                                        handleDeepCheckEvent({
-                                            stage: currentEvent,
-                                            data: data
-                                        });
-                                        currentEvent = ''; // Reset after handling
+                                        handleDeepCheckEvent({ stage: currentEvent, data: data });
+                                        currentEvent = '';
                                     } catch (e) {
-                                        console.error('Failed to parse SSE data:', e, 'Event:', currentEvent, 'Data:', eventData);
+                                        console.error('Failed to parse SSE data:', e);
                                     }
                                 }
                             }
@@ -1528,41 +1630,65 @@
 
                         processStream();
                     }).catch(err => {
-                        // Check if it was aborted (not an error)
                         if (err.name === 'AbortError') {
-                            console.log('Stream aborted (new URL entered)');
+                            console.log('Deep check stream aborted');
+                            cleanupDeepCheckBadges(false);  // Just stop animation
                         } else {
                             console.error('Stream error:', err);
+                            cleanupDeepCheckBadges(true);  // Mark complete on error
                         }
-                        deepCheckRunning = false;
+                        finishDeepCheck(false);
                     });
                 }
 
                 processStream();
             }).catch(err => {
-                // Check if it was aborted (not an error)
                 if (err.name === 'AbortError') {
-                    console.log('Deep check was aborted (new URL entered)');
+                    console.log('Deep check fetch aborted');
+                    cleanupDeepCheckBadges(false);  // Just stop animation
                 } else {
                     console.error('Failed to start deep check:', err);
+                    cleanupDeepCheckBadges(true);  // Mark complete on error
                     document.getElementById('deep-check-status').textContent = 'Failed to start analysis';
                 }
-                deepCheckRunning = false;
+                finishDeepCheck(false);
             });
         }
 
         function handleDeepCheckEvent(data) {
             if (!data) return;
 
+            // If we've already finalized the UI, ignore any late-arriving events
+            if (isDeepCheckUIFinalized) {
+                return;
+            }
+
             console.log('Deep check event:', data.stage, data.data);
+            // Reset idle finalizer after each event so we auto-complete if stream goes quiet
+            if (deepCheckIdleTimer) {
+                clearTimeout(deepCheckIdleTimer);
+            }
+            deepCheckIdleTimer = setTimeout(() => {
+                if (!isDeepCheckUIFinalized && isDeepCheckRunning && deepCheckProgress >= 70) {
+                    console.log('Deep check idle finalize fired');
+                    finalizeDeepCheckUI('Analysis complete');
+                    finishDeepCheck(true);
+                }
+            }, 4000);
 
             // Handle different event types
             if (data.stage === 'analysis_progress' && data.data) {
                 const progress = data.data.progress || 0;
                 const step = data.data.step || '';
+                deepCheckProgress = progress;
                 document.getElementById('deep-check-bar').style.width = progress + '%';
                 if (step) {
                     document.getElementById('deep-check-status').textContent = step;
+                }
+                if (progress >= 100) {
+                    finalizeDeepCheckUI('Analysis complete');
+                    finishDeepCheck(true);
+                    return;
                 }
 
                 // Update stage badges based on progress
@@ -1571,6 +1697,9 @@
                     const parseEl = document.getElementById('stage-parsing');
                     if (parseEl && !parseEl.classList.contains('stage-complete')) {
                         parseEl.classList.add('stage-complete');
+                        if (!parseEl.textContent.includes('✓')) {
+                            parseEl.textContent = '✓ Parsing';
+                        }
                     }
                 }
                 if (progress >= 30 && progress < 40) {
@@ -1586,6 +1715,9 @@
                     if (techEl) {
                         techEl.classList.remove('stage-active');
                         techEl.classList.add('stage-complete');
+                        if (!techEl.textContent.includes('✓')) {
+                            techEl.textContent = '✓ Technologies';
+                        }
                     }
                 }
                 if (progress >= 40 && progress < 50) {
@@ -1601,6 +1733,9 @@
                     if (trackerEl) {
                         trackerEl.classList.remove('stage-active');
                         trackerEl.classList.add('stage-complete');
+                        if (!trackerEl.textContent.includes('✓')) {
+                            trackerEl.textContent = '✓ Trackers';
+                        }
                     }
                 }
                 if (progress >= 50 && progress < 70) {
@@ -1616,6 +1751,9 @@
                     if (scriptEl) {
                         scriptEl.classList.remove('stage-active');
                         scriptEl.classList.add('stage-complete');
+                        if (!scriptEl.textContent.includes('✓')) {
+                            scriptEl.textContent = '✓ Scripts';
+                        }
                     }
                 }
                 if (progress >= 70 && progress < 100) {
@@ -1631,6 +1769,9 @@
                     if (secEl) {
                         secEl.classList.remove('stage-active');
                         secEl.classList.add('stage-complete');
+                        if (!secEl.textContent.includes('✓')) {
+                            secEl.textContent = '✓ Security';
+                        }
                     }
                 }
             }
@@ -1663,26 +1804,26 @@
                 }
             }
             else if (data.stage === 'security_score' && data.data) {
+                deepCheckGotSecurityScore = true;
+                finalizeDeepCheckUI('Analysis complete');
+                finishDeepCheck(true);
                 renderSecurityScore(data.data);
             }
             else if (data.stage === 'analysis_complete') {
-                deepCheckRunning = false;
-                document.getElementById('deep-check-bar').style.width = '100%';
-                document.getElementById('deep-check-status').textContent = 'Analysis complete';
-
-                // Ensure all stage badges are marked complete and not active (fixes blinking)
-                ['parsing', 'technologies', 'trackers', 'scripts', 'security'].forEach(stage => {
-                    const el = document.getElementById('stage-' + stage);
-                    if (el) {
-                        el.classList.remove('stage-active'); // Remove pulsing animation
-                        el.classList.add('stage-complete');
-                    }
-                });
+                console.log('Deep check analysis complete');
+                finalizeDeepCheckUI('Analysis complete');
+                finishDeepCheck(true);
+            }
+            else if (data.stage === 'done') {
+                finalizeDeepCheckUI('Analysis complete');
+                finishDeepCheck(true);
             }
             else if (data.stage === 'error') {
-                deepCheckRunning = false;
+                console.log('Deep check error:', data.data);
                 const errorMsg = (data.data && data.data.error) || 'Analysis failed';
                 document.getElementById('deep-check-status').textContent = errorMsg;
+                cleanupDeepCheckBadges(true);
+                finishDeepCheck(false);
             }
         }
 

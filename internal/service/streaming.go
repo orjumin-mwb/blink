@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/olegrjumin/blink/internal/checker"
 	"github.com/olegrjumin/blink/internal/logging"
@@ -59,6 +60,7 @@ func (s *StreamingService) CheckURLStreaming(ctx context.Context, url string, op
 		go func() {
 			defer close(done)
 			for evt := range checkerEvents {
+				// Forward the event
 				select {
 				case events <- StreamEvent{
 					Stage:   evt.Stage,
@@ -67,6 +69,32 @@ func (s *StreamingService) CheckURLStreaming(ctx context.Context, url string, op
 				}:
 				case <-ctx.Done():
 					return
+				}
+
+				// If this is a complete event, calculate and send final verdict
+				if evt.Stage == "complete" {
+					s.logger.Info("Received complete event", "data_type", fmt.Sprintf("%T", evt.Data))
+					if result, ok := evt.Data.(*checker.CheckResult); ok {
+						s.logger.Info("Type assertion successful, calculating verdict...")
+						// Calculate final verdict using the scoring service
+						verdict := CalculateOverallScore(result)
+
+						s.logger.Info("Final verdict calculated", "verdict", verdict.Verdict, "score", verdict.Score.Total, "max_score", verdict.Score.MaxScore)
+
+						// Send final verdict event
+						select {
+						case events <- StreamEvent{
+							Stage:   "final_verdict",
+							Message: "Final verdict calculated",
+							Data:    verdict,
+						}:
+							s.logger.Info("Final verdict event sent successfully")
+						case <-ctx.Done():
+							return
+						}
+					} else {
+						s.logger.Error("Type assertion failed for complete event", "data_type", fmt.Sprintf("%T", evt.Data))
+					}
 				}
 			}
 		}()

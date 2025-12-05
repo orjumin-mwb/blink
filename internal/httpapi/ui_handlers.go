@@ -124,6 +124,11 @@ func uiStreamHandler(streamingSvc *service.StreamingService) http.HandlerFunc {
 				continue
 			}
 
+			// Debug log for final_verdict
+			if event.Stage == "final_verdict" {
+				fmt.Printf("[DEBUG] Sending final_verdict event to browser: %s\n", string(data))
+			}
+
 			fmt.Fprintf(w, "event: %s\n", event.Stage)
 			fmt.Fprintf(w, "data: %s\n\n", string(data))
 			flusher.Flush()

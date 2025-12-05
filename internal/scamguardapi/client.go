@@ -45,12 +45,13 @@ type StreamEvent struct {
 
 // ScanResult contains the final scan result
 type ScanResult struct {
-	Verdict        string `json:"verdict"`
-	Analysis       string `json:"analysis"`
-	DestinationURL string `json:"destination_url"`
-	Reachable      bool   `json:"reachable"`
-	ResponseID     string `json:"response_id"`
-	ThreadID       string `json:"thread_id"`
+	Verdict        string           `json:"verdict"`
+	Analysis       string           `json:"analysis"`
+	DestinationURL string           `json:"destination_url"`
+	Reachable      bool             `json:"reachable"`
+	ResponseID     string           `json:"response_id"`
+	ThreadID       string           `json:"thread_id"`
+	Enhanced       *EnhancedVerdict `json:"enhanced,omitempty"` // Enhanced verdict from text analysis
 }
 
 // New creates a new ScamGuard API client
@@ -64,11 +65,21 @@ func New(baseURL, userAgent string) *Client {
 	}
 }
 
+// Enhanced prompt for better structured responses
+const enhancedPrompt = `Analyze this URL for security threats. In your response, please include:
+1. Whether the site appears legitimate, suspicious, or malicious
+2. Key indicators that led to your assessment
+3. Any reputation or historical information about the domain
+4. Potential risks or concerns
+5. If the site is an established service, mention that clearly
+
+URL to analyze: `
+
 // ScanURLStreaming performs a streaming URL scan and forwards SSE events
 func (c *Client) ScanURLStreaming(ctx context.Context, url string, events chan<- StreamEvent) (*ScanResult, error) {
-	// Build request body
+	// Build request body with enhanced prompt
 	reqBody := CreateResponseRequest{
-		Input:  url,
+		Input:  enhancedPrompt + url,
 		Stream: true,
 		Capabilities: []Capability{
 			{Type: "scan_url"},
@@ -212,6 +223,14 @@ func (c *Client) parseSSEStream(body io.Reader, events chan<- StreamEvent) (*Sca
 		Reachable:      reachable,
 		ResponseID:     responseID,
 		ThreadID:       threadID,
+	}
+
+	// Parse the text to get enhanced verdict
+	result.Enhanced = ParseVerdictFromText(result.Analysis, verdict)
+
+	// If the original verdict was unknown and we found a better one, update it
+	if verdict == "unknown" && result.Enhanced != nil && result.Enhanced.Verdict != "unknown" {
+		result.Verdict = result.Enhanced.Verdict
 	}
 
 	return result, nil

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/olegrjumin/blink/internal/checker"
 	"github.com/olegrjumin/blink/internal/logging"
@@ -87,16 +86,17 @@ func (s *Service) mergeOptions(opts *checker.CheckOptions) checker.CheckOptions 
 // mergeDeepOptions merges provided options with service defaults for deep check
 func (s *Service) mergeDeepOptions(opts *checker.DeepCheckOptions) checker.DeepCheckOptions {
 	if opts == nil {
-		// Use defaults
-		return checker.DeepCheckOptions{
-			CheckOptions:           s.options,
-			EnableRuntimeDetection: false,
-			RuntimeTimeout:         5 * time.Second,
-			AnalyzeJS:             true,
-			FetchExternalJS:       true,
-			MaxJSFiles:           20,
-			JSTimeout:            3 * time.Second,
+		// Use deep-check defaults (with a longer timeout than basic checks)
+		def := checker.DefaultDeepCheckOptions()
+		// Carry over service-level UA/redirect settings when available
+		if s.options.UserAgent != "" {
+			def.UserAgent = s.options.UserAgent
 		}
+		if s.options.MaxRedirects > 0 {
+			def.MaxRedirects = s.options.MaxRedirects
+		}
+		def.FollowRedirects = s.options.FollowRedirects
+		return def
 	}
 
 	// Start with provided options
@@ -104,7 +104,7 @@ func (s *Service) mergeDeepOptions(opts *checker.DeepCheckOptions) checker.DeepC
 
 	// Apply defaults where not specified
 	if merged.Timeout == 0 {
-		merged.Timeout = s.options.Timeout
+		merged.Timeout = checker.DefaultDeepCheckOptions().Timeout
 	}
 	if merged.UserAgent == "" {
 		merged.UserAgent = s.options.UserAgent
@@ -113,13 +113,13 @@ func (s *Service) mergeDeepOptions(opts *checker.DeepCheckOptions) checker.DeepC
 		merged.MaxRedirects = s.options.MaxRedirects
 	}
 	if merged.RuntimeTimeout == 0 {
-		merged.RuntimeTimeout = 5 * time.Second
+		merged.RuntimeTimeout = checker.DefaultDeepCheckOptions().RuntimeTimeout
 	}
 	if merged.JSTimeout == 0 {
-		merged.JSTimeout = 3 * time.Second
+		merged.JSTimeout = checker.DefaultDeepCheckOptions().JSTimeout
 	}
 	if merged.MaxJSFiles == 0 {
-		merged.MaxJSFiles = 20
+		merged.MaxJSFiles = checker.DefaultDeepCheckOptions().MaxJSFiles
 	}
 
 	return merged

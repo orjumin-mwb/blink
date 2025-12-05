@@ -1,5 +1,41 @@
 <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
 
+{{ if or (eq .ErrorType "dns_error") (eq .ErrorType "network_error") (eq .ErrorType "invalid_url") (eq .ErrorType "tls_error") }}
+<!-- DNS/Network/Invalid URL Error: Show simplified "unknown" state -->
+<div class="bg-gray-50 border-2 border-gray-300 rounded-lg p-6">
+    <div class="flex items-start">
+        <svg class="w-8 h-8 text-gray-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Unable to Check URL</h3>
+            <p class="text-gray-700">This URL could not be reached or doesn't resolve to a valid address. Please check the URL and try again.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update gauge to show unknown state for DNS/network errors
+setTimeout(function() {
+    if (typeof window.updateVerdictGauge === 'function') {
+        window.updateVerdictGauge('unknown');
+    }
+}, 100);
+
+// Disable the advanced tab for DNS/network errors
+setTimeout(function() {
+    const advancedTab = document.getElementById('tab-advanced');
+    if (advancedTab) {
+        advancedTab.disabled = true;
+        advancedTab.classList.add('opacity-50', 'cursor-not-allowed');
+        advancedTab.classList.remove('hover:bg-gray-100');
+        advancedTab.replaceWith(advancedTab.cloneNode(true));
+    }
+}, 100);
+</script>
+
+{{ else }}
+<!-- Normal result display for successful checks or other errors -->
 <div class="bg-white rounded-lg p-6 mb-4 animate-fadeIn">
     <!-- Header with URL and Status -->
     <div class="mb-6">
@@ -26,7 +62,7 @@
         <!-- Left Column: Main Info (2/3 width) -->
         <div class="lg:col-span-3">
             <!-- Timing Breakdown -->
-            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Timing Breakdown</h4>
 
                 <div class="space-y-2">
@@ -89,7 +125,7 @@
             </div>
 
             <!-- Additional Info Grid -->
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-2 gap-4 mb-6">
                 {{ if .Protocol }}
                     <div class="p-3 bg-gray-50 rounded">
                         <div class="text-xs text-gray-500 mb-1">Protocol</div>
@@ -121,7 +157,7 @@
 
             <!-- Redirect Chain -->
             {{ if .RedirectChain }}
-                <div class="border-t pt-4 mt-4">
+                <div class="border-t pt-6 mt-6">
                     <h4 class="text-sm font-semibold text-gray-700 mb-3">Redirect Chain</h4>
                     <div class="space-y-2">
                         {{ range $index, $redirect := .RedirectChain }}
@@ -142,7 +178,7 @@
 
             <!-- TLS Certificate Info -->
             {{ if .TLSVersion }}
-                <div class="border-t pt-4 mt-4">
+                <div class="border-t pt-6 mt-6">
                     <h4 class="text-sm font-semibold text-gray-700 mb-3">TLS Certificate</h4>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -169,7 +205,7 @@
 
             <!-- MWB URL Checker -->
             {{ if .MWBURLChecker }}
-                <div class="border-t pt-4 mt-4">
+                <div class="border-t pt-6 mt-6">
                     <div class="p-3 bg-red-50 border border-red-200 rounded-md">
                         <div class="flex items-center">
                             <span class="text-red-600 text-xl mr-2">⚠</span>
@@ -184,7 +220,7 @@
 
             <!-- Error Message -->
             {{ if not .OK }}
-                <div class="border-t pt-4 mt-4">
+                <div class="border-t pt-6 mt-6">
                     <div class="bg-red-50 border border-red-200 rounded-md p-4">
                         <div class="flex items-start">
                             <span class="text-red-600 text-xl mr-2">✗</span>
@@ -199,6 +235,7 @@
         </div>
     </div>
 </div>
+{{ end }}
 
 <style>
 @keyframes fadeIn {
