@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/olegrjumin/blink/internal/checker"
@@ -39,6 +40,9 @@ func checkHandler(svc *service.Service) http.HandlerFunc {
 			})
 			return
 		}
+
+		// Trim whitespace from URL
+		req.URL = strings.TrimSpace(req.URL)
 
 		// Validate that URL is provided
 		if req.URL == "" {
@@ -106,6 +110,9 @@ func deepCheckHandler(svc *service.Service) http.HandlerFunc {
 			})
 			return
 		}
+
+		// Trim whitespace from URL
+		req.URL = strings.TrimSpace(req.URL)
 
 		// Validate that URL is provided
 		if req.URL == "" {

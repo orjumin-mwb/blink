@@ -70,4 +70,8 @@ type CheckResult struct {
 
 	// ScamGuard field
 	ScamGuard *ScamGuardResult `json:"scamguard,omitempty"` // ScamGuard analysis result (nil if not enabled or failed)
+
+	// HTTP 405 tracking
+	MethodNotAllowed bool `json:"method_not_allowed,omitempty"` // True if HEAD returned 405
+	InitialStatus    int  `json:"initial_status,omitempty"`     // Status before retry (e.g., 405)
 }

@@ -99,12 +99,19 @@ func (c *Checker) CheckURL(ctx context.Context, rawURL string, opts CheckOptions
 		// Perform the request
 		resp, err := c.client.Do(ctx, opts.Method, currentURL, opts.UserAgent)
 		if err != nil {
-			// If HEAD failed with 405 Method Not Allowed, try GET
-			if opts.Method == "HEAD" && strings.Contains(err.Error(), "405") {
-				resp, err = c.client.Do(ctx, "GET", currentURL, opts.UserAgent)
-			}
+			result.ErrorType, result.ErrorMessage = ClassifyError(err)
+			result.TotalMs = time.Since(startTime).Milliseconds()
+			return result
+		}
 
-			// If still error, classify and return
+		// Check if HEAD request returned 405 Method Not Allowed
+		if opts.Method == "HEAD" && resp.StatusCode == 405 {
+			// Capture that we got a 405 on HEAD request
+			result.MethodNotAllowed = true
+			result.InitialStatus = 405
+
+			// Try GET instead
+			resp, err = c.client.Do(ctx, "GET", currentURL, opts.UserAgent)
 			if err != nil {
 				result.ErrorType, result.ErrorMessage = ClassifyError(err)
 				result.TotalMs = time.Since(startTime).Milliseconds()

@@ -74,10 +74,19 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 	// Launch ScamGuard check in parallel (only if MWB didn't block it)
 	var scamGuardResult *ScamGuardResult
 	scamGuardDone := make(chan struct{})
+	scamGuardCancel := make(chan struct{})
+	scamGuardCancelled := false
 
 	if c.scamGuardClient != nil {
 		go func() {
 			defer close(scamGuardDone)
+
+			// Check if we should cancel due to 405
+			select {
+			case <-scamGuardCancel:
+				return
+			default:
+			}
 
 			// Create sub-channel for ScamGuard events
 			sgEvents := make(chan scamguardapi.StreamEvent, 10)
@@ -177,11 +186,36 @@ func (c *Checker) CheckURLStreaming(ctx context.Context, rawURL string, opts Che
 		// Perform request
 		resp, err := c.client.Do(ctx, opts.Method, currentURL, opts.UserAgent)
 		if err != nil {
-			// Try GET if HEAD failed with 405
-			if opts.Method == "HEAD" && strings.Contains(err.Error(), "405") {
-				resp, err = c.client.Do(ctx, "GET", currentURL, opts.UserAgent)
+			result.ErrorType, result.ErrorMessage = ClassifyError(err)
+			result.TotalMs = time.Since(startTime).Milliseconds()
+			sendEvent(ctx, events, "error", result.ErrorMessage, result)
+			return
+		}
+
+		// Check if HEAD request returned 405 Method Not Allowed
+		if opts.Method == "HEAD" && resp.StatusCode == 405 {
+			// Capture that we got a 405 on HEAD request
+			result.MethodNotAllowed = true
+			result.InitialStatus = 405
+
+			// Cancel ScamGuard check and override with synthetic result for 405 sites
+			if c.scamGuardClient != nil && !scamGuardCancelled {
+				close(scamGuardCancel) // Signal ScamGuard goroutine to stop
+				scamGuardCancelled = true
+
+				scamGuardResult = &ScamGuardResult{
+					Verdict:    "malicious",
+					Confidence: 0.9,
+					Reason:     "Site blocks standard HTTP methods - critical security indicator",
+					Analysis:   "HTTP 405 on HEAD request indicates non-standard server behavior typical of phishing/scam sites",
+				}
+
+				// Send event to indicate we're skipping AI check
+				sendEvent(ctx, events, "scamguard.skipped", "Skipping AI check due to HTTP 405", scamGuardResult)
 			}
 
+			// Try GET instead
+			resp, err = c.client.Do(ctx, "GET", currentURL, opts.UserAgent)
 			if err != nil {
 				result.ErrorType, result.ErrorMessage = ClassifyError(err)
 				result.TotalMs = time.Since(startTime).Milliseconds()

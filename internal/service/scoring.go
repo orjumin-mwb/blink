@@ -65,6 +65,14 @@ func CalculateOverallScore(result *checker.CheckResult) *VerdictResult {
 func calculateBasicScore(result *checker.CheckResult) int {
 	score := 0
 
+	// HTTP 405 Method Not Allowed - Heavy penalty
+	if result.MethodNotAllowed {
+		score -= 25 // Heavy penalty for 405
+		if result.Protocol == "http" {
+			score -= 10 // Additional penalty if not HTTPS
+		}
+	}
+
 	// DNS Resolution (10 points)
 	if result.ErrorType != "DNS_FAILURE" && result.ErrorType != "INVALID_URL" {
 		score += 10
@@ -165,6 +173,15 @@ func determineVerdict(result *checker.CheckResult, score ScoreBreakdown) *Verdic
 	verdict := &VerdictResult{
 		Confidence: 0.5, // Default confidence
 		Priority:   "overall",
+	}
+
+	// Check for HTTP 405 Method Not Allowed - highest priority
+	if result.MethodNotAllowed {
+		verdict.Verdict = "dangerous"
+		verdict.Priority = "http_method"
+		verdict.Reason = "Site blocks standard HTTP methods and exhibits suspicious behavior"
+		verdict.Confidence = 0.9
+		return verdict
 	}
 
 	// Check for critical issues that override scoring

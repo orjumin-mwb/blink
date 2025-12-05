@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/olegrjumin/blink/internal/service"
 )
@@ -71,7 +72,7 @@ func uiStreamHandler(streamingSvc *service.StreamingService) http.HandlerFunc {
 		}
 
 		// Get URL from query parameters
-		url := r.URL.Query().Get("url")
+		url := strings.TrimSpace(r.URL.Query().Get("url"))
 		if url == "" {
 			http.Error(w, "URL required", http.StatusBadRequest)
 			return

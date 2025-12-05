@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/olegrjumin/blink/internal/checker"
 	"github.com/olegrjumin/blink/internal/logging"
@@ -27,6 +28,9 @@ func New(chk *checker.Checker, logger *logging.Logger, opts checker.CheckOptions
 // CheckURL performs a URL check with the given options
 // This is the main entry point for the URL checking use case
 func (s *Service) CheckURL(ctx context.Context, url string, opts *checker.CheckOptions) *checker.CheckResult {
+	// Trim whitespace from URL
+	url = strings.TrimSpace(url)
+
 	// Merge provided options with defaults
 	finalOpts := s.mergeOptions(opts)
 
@@ -127,6 +131,9 @@ func (s *Service) mergeDeepOptions(opts *checker.DeepCheckOptions) checker.DeepC
 
 // DeepCheckURL performs a deep URL check with JavaScript analysis
 func (s *Service) DeepCheckURL(ctx context.Context, url string, opts *checker.DeepCheckOptions) *checker.DeepCheckResult {
+	// Trim whitespace from URL
+	url = strings.TrimSpace(url)
+
 	// Merge provided options with defaults
 	finalOpts := s.mergeDeepOptions(opts)
 
