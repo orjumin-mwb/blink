@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLINK API Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BLINK API</h1>
+            <p class="subtitle">Next-Generation URL Security Analysis Platform</p>
+        </header>
+        
+        <div class="overview">
+            <h2>Overview</h2>
+            <p>The BLINK API provides comprehensive URL security analysis with real-time threat detection, AI-powered verdicts, and detailed security assessments. Built with Go microservices architecture for high performance and scalability.</p>
+            
+            <div class="base-url">
+                <strong>Base URL:</strong> http://localhost:8080 (configurable via PORT environment variable)
+            </div>
+            
+            <div class="quick-start">
+                <h4>Quick Start Test</h4>
+                <div class="code-block">curl -X POST http://localhost:8080/check -H "Content-Type: application/json" -d '{"url":"https://example.com"}'</div>
+            </div>
+        </div>
+        
+        <div class="endpoints-table">
+            <div class="table-header">
+                <h2>API Endpoints</h2>
+                <p>Complete reference of available endpoints and their capabilities</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Purpose</th>
+                        <th>Content-Type</th>
+                        <th>Real-time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="method get">GET</span></td>
+                        <td><span class="endpoint">/health</span></td>
+                        <td>Service health check</td>
+                        <td>application/json</td>
+                        <td><span class="badge static">No</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="method post">POST</span></td>
+                        <td><span class="endpoint">/check</span></td>
+                        <td>Basic URL validation & analysis</td>
+                        <td>application/json</td>
+                        <td><span class="badge static">No</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="method post">POST</span></td>
+                        <td><span class="endpoint">/deep-check</span></td>
+                        <td>Comprehensive security analysis</td>
+                        <td>application/json or text/event-stream</td>
+                        <td><span class="badge realtime">Yes (SSE)</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="method post">POST</span></td>
+                        <td><span class="endpoint">/screenshot</span></td>
+                        <td>Website screenshot capture</td>
+                        <td>application/json</td>
+                        <td><span class="badge static">No</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="method get">GET</span></td>
+                        <td><span class="endpoint">/ui</span></td>
+                        <td>Interactive web interface</td>
+                        <td>text/html</td>
+                        <td><span class="badge static">No</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="method get">GET</span></td>
+                        <td><span class="endpoint">/ui/stream</span></td>
+                        <td>Real-time UI updates</td>
+                        <td>text/event-stream</td>
+                        <td><span class="badge realtime">Yes (SSE)</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="method get">GET</span></td>
+                        <td><span class="endpoint">/screenshots/{date}/{filename}</span></td>
+                        <td>Static screenshot files</td>
+                        <td>image/jpeg or image/png</td>
+                        <td><span class="badge static">No</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h3>Key Features</h3>
+            <ul class="feature-list">
+                <li><strong>Real-time Analysis:</strong> Server-Sent Events for live security assessment</li>
+                <li><strong>AI-Powered Verdicts:</strong> ScamGuard integration for threat intelligence</li>
+                <li><strong>Comprehensive Scanning:</strong> DNS, TLS, content, and API analysis</li>
+                <li><strong>Visual Verification:</strong> Screenshot capture with BlurHash encoding</li>
+                <li><strong>Technology Detection:</strong> Framework and library identification</li>
+                <li><strong>Security Scoring:</strong> Numerical trust ratings with detailed explanations</li>
+                <li><strong>Privacy Assessment:</strong> Tracking and fingerprinting detection</li>
+                <li><strong>Payment API Detection:</strong> E-commerce platform identification</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>Performance Targets</h3>
+            <ul class="feature-list">
+                <li><strong>Basic Check:</strong> Sub-2 second response time</li>
+                <li><strong>Deep Analysis:</strong> Sub-5 second response time</li>
+                <li><strong>Screenshot Capture:</strong> Sub-10 second response time</li>
+                <li><strong>Real-time Updates:</strong> <100ms event latency</li>
+                <li><strong>Concurrent Analysis:</strong> Up to 5 simultaneous deep checks</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h3>Rate Limits</h3>
+            <ul class="feature-list">
+                <li><strong>Basic Checks:</strong> 100 requests per minute per IP</li>
+                <li><strong>Deep Analysis:</strong> 20 requests per minute per IP</li>
+                <li><strong>Screenshots:</strong> 10 requests per minute per IP</li>
+            </ul>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/ui" target="_blank">Try Web Interface</a>
+            <a href="/health" target="_blank">Health Check</a>
+            <a href="../API_DOCUMENTATION.md" target="_blank">Full Documentation</a>
+        </div>
+        
+        <footer>
+            <p><strong>BLINK URL Checker</strong> - Winter Hackathon 2025<br>
+            Built with Go microservices • Real-time analysis • AI-powered security</p>
+        </footer>
+    </div>
+</body>
+</html>
