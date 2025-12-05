@@ -122,10 +122,14 @@ func uiStreamHandler(streamingSvc *service.StreamingService) http.HandlerFunc {
 			// For other events, send JSON data
 			data, err := json.Marshal(event)
 			if err != nil {
+				fmt.Printf("[ERROR] Failed to marshal event stage=%s: %v, data type=%T\n", event.Stage, err, event.Data)
 				continue
 			}
 
-			// Debug log for final_verdict
+			// Debug log for payment and final_verdict
+			if event.Stage == "payment" {
+				fmt.Printf("[DEBUG] Sending payment event to browser: %s\n", string(data))
+			}
 			if event.Stage == "final_verdict" {
 				fmt.Printf("[DEBUG] Sending final_verdict event to browser: %s\n", string(data))
 			}

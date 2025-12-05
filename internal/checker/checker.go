@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -639,6 +640,11 @@ func (c *Checker) buildUnifiedResponse(targetURL string, startTime time.Time, le
 
 	builder.SetPageInfo(pageInfo)
 
+	// Detect payment methods
+	if legacyResult.HTMLContent != "" {
+		c.detectAndSetPaymentMethods(builder, legacyResult, headers, externalScripts)
+	}
+
 	// Build network data if available
 	if legacyResult.RuntimeAnalysis != nil && len(legacyResult.RuntimeAnalysis.NetworkRequests) > 0 {
 		networkData := &NetworkData{
@@ -694,6 +700,97 @@ func extractExternalScripts(html string) []string {
 	}
 
 	return scripts
+}
+
+// detectAndSetPaymentMethods performs payment detection and adds results to the builder
+func (c *Checker) detectAndSetPaymentMethods(builder *ResponseBuilder, legacyResult *legacyDeepCheckResult, headers http.Header, externalScripts []string) {
+	log.Printf("[DEBUG] Payment detection starting, HTML length: %d", len(legacyResult.HTMLContent))
+
+	// Create payment detector
+	paymentDetector := NewPaymentDetector()
+
+	// Extract inline scripts
+	inlineScripts := extractInlineScripts(legacyResult.HTMLContent)
+	allScripts := append(inlineScripts, externalScripts...)
+
+	log.Printf("[DEBUG] Extracted %d inline scripts, %d external scripts", len(inlineScripts), len(externalScripts))
+
+	// Prepare network data if available
+	var networkData []NetworkRequest
+	if legacyResult.RuntimeAnalysis != nil && len(legacyResult.RuntimeAnalysis.NetworkRequests) > 0 {
+		networkData = make([]NetworkRequest, 0, len(legacyResult.RuntimeAnalysis.NetworkRequests))
+		for _, req := range legacyResult.RuntimeAnalysis.NetworkRequests {
+			networkData = append(networkData, NetworkRequest{
+				URL:    req,
+				Method: "GET",
+				Type:   "xhr",
+			})
+		}
+	}
+
+	// Perform payment detection
+	paymentResult := paymentDetector.Detect(legacyResult.HTMLContent, headers, allScripts, networkData)
+
+	log.Printf("[DEBUG] Payment detection complete, found %d providers, %d methods", len(paymentResult.Providers), len(paymentResult.PaymentMethods))
+
+	// Build payment analysis summary
+	summary := &PaymentSummary{
+		TotalProviders: len(paymentResult.Providers),
+		IsSecure:       paymentResult.Compliance.SecureTransmission,
+	}
+
+	// Determine primary provider (highest confidence)
+	if len(paymentResult.Providers) > 0 {
+		highestScore := 0.0
+		for _, provider := range paymentResult.Providers {
+			if provider.ConfidenceScore > highestScore {
+				highestScore = provider.ConfidenceScore
+				summary.PrimaryProvider = provider.Name
+				summary.ConfidenceLevel = provider.Confidence
+			}
+		}
+	}
+
+	// Set category flags
+	for _, method := range paymentResult.PaymentMethods {
+		switch method {
+		case "credit_card":
+			summary.HasCreditCard = true
+		case "cryptocurrency":
+			summary.HasCrypto = true
+		case "buy_now_pay_later":
+			summary.HasBNPL = true
+		}
+	}
+
+	// Check for wallet methods
+	walletMethods := []string{"apple_pay", "google_pay", "paypal", "amazon_pay", "venmo"}
+	for _, method := range paymentResult.PaymentMethods {
+		for _, wallet := range walletMethods {
+			if method == wallet {
+				summary.HasWallets = true
+				break
+			}
+		}
+		if summary.HasWallets {
+			break
+		}
+	}
+
+	// Create payment analysis
+	paymentAnalysis := &PaymentAnalysis{
+		Providers:      paymentResult.Providers,
+		Methods:        paymentResult.PaymentMethods,
+		CheckoutFlow:   paymentResult.CheckoutFlow,
+		Compliance:     &paymentResult.Compliance,
+		RiskAssessment: &paymentResult.RiskAssessment,
+		Summary:        summary,
+	}
+
+	// Set payment data in builder
+	builder.SetPaymentAnalysis(paymentAnalysis)
+
+	log.Printf("[DEBUG] Payment analysis set in builder with %d providers", len(paymentAnalysis.Providers))
 }
 
 // analyzeDeviceCapabilities converts detected APIs to device capabilities
@@ -791,12 +888,14 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	const maxBodySize = 10 * 1024 * 1024 // 10MB
 	bodyReader := io.LimitReader(body, maxBodySize)
 	bodyBytes, err := io.ReadAll(bodyReader)
+	log.Printf("[DEBUG] Streaming: Read bodyBytes, length=%d, err=%v", len(bodyBytes), err)
 	if err != nil {
 		sendEvent(ctx, events, "error", "Failed to read response", map[string]string{"error": err.Error()})
 		return
 	}
 
 	htmlContent := string(bodyBytes)
+	log.Printf("[DEBUG] Streaming: htmlContent loaded, length=%d", len(htmlContent))
 
 	if isCancelled() {
 		return
@@ -1036,6 +1135,86 @@ func (c *Checker) DeepCheckURLStreaming(ctx context.Context, rawURL string, opts
 	privacyRisks := trackerDetector.AnalyzePrivacyRisks(trackers, allAPIs)
 	for _, risk := range privacyRisks {
 		sendEvent(ctx, events, "privacy_risk", "Privacy risk detected", risk)
+	}
+
+	if isCancelled() {
+		return
+	}
+
+	// Progress: 95% - Payment detection
+	sendEvent(ctx, events, "analysis_progress", "Detecting payment methods...", map[string]interface{}{
+		"progress": 95,
+		"step":     "Analyzing payment methods",
+	})
+
+	// Detect payment methods
+	paymentDetector := NewPaymentDetector()
+	allScripts := append(inlineScripts, externalScripts...)
+	log.Printf("[DEBUG] Streaming payment detection: HTML length=%d, scripts=%d", len(htmlContent), len(allScripts))
+	paymentResult := paymentDetector.Detect(htmlContent, resp.Header, allScripts, nil)
+	log.Printf("[DEBUG] Streaming payment detection result: result=%v, providers=%d", paymentResult != nil, len(paymentResult.Providers))
+	if paymentResult != nil && len(paymentResult.Providers) > 0 {
+		// Build payment summary
+		summary := &PaymentSummary{
+			TotalProviders:  len(paymentResult.Providers),
+			IsSecure:        paymentResult.Compliance.SecureTransmission,
+			HasCreditCard:   false,
+			HasWallets:      false,
+			HasBNPL:         false,
+			HasCrypto:       false,
+			ConfidenceLevel: "low",
+		}
+
+		// Determine primary provider
+		if len(paymentResult.Providers) > 0 {
+			highestScore := 0.0
+			for _, provider := range paymentResult.Providers {
+				if provider.ConfidenceScore > highestScore {
+					highestScore = provider.ConfidenceScore
+					summary.PrimaryProvider = provider.Name
+					summary.ConfidenceLevel = provider.Confidence
+				}
+			}
+		}
+
+		// Set category flags
+		for _, method := range paymentResult.PaymentMethods {
+			switch method {
+			case "credit_card":
+				summary.HasCreditCard = true
+			case "cryptocurrency":
+				summary.HasCrypto = true
+			case "buy_now_pay_later":
+				summary.HasBNPL = true
+			}
+		}
+
+		// Check for wallet methods
+		walletMethods := []string{"apple_pay", "google_pay", "paypal", "amazon_pay", "venmo"}
+		for _, method := range paymentResult.PaymentMethods {
+			for _, wallet := range walletMethods {
+				if method == wallet {
+					summary.HasWallets = true
+					break
+				}
+			}
+			if summary.HasWallets {
+				break
+			}
+		}
+
+		// Send payment event with full data
+		paymentData := map[string]interface{}{
+			"providers":       paymentResult.Providers,
+			"methods":         paymentResult.PaymentMethods,
+			"checkout_flow":   paymentResult.CheckoutFlow,
+			"compliance":      paymentResult.Compliance,
+			"risk_assessment": paymentResult.RiskAssessment,
+			"summary":         summary,
+		}
+		sendEvent(ctx, events, "payment", "Payment methods detected", paymentData)
+
+		log.Printf("[DEBUG] Streaming: Sent payment event with %d providers", len(paymentResult.Providers))
 	}
 
 	if isCancelled() {

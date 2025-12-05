@@ -65,13 +65,10 @@ func CalculateOverallScore(result *checker.CheckResult) *VerdictResult {
 func calculateBasicScore(result *checker.CheckResult) int {
 	score := 0
 
-	// HTTP 405 Method Not Allowed - Heavy penalty
-	if result.MethodNotAllowed {
-		score -= 25 // Heavy penalty for 405
-		if result.Protocol == "http" {
-			score -= 10 // Additional penalty if not HTTPS
-		}
-	}
+	// HTTP 405 Method Not Allowed - NO PENALTY
+	// Many legitimate sites (Amazon, eBay, etc.) block HEAD requests
+	// This is not a security indicator, just a server configuration choice
+	// So we completely ignore it in scoring
 
 	// DNS Resolution (10 points)
 	if result.ErrorType != "DNS_FAILURE" && result.ErrorType != "INVALID_URL" {
@@ -175,16 +172,8 @@ func determineVerdict(result *checker.CheckResult, score ScoreBreakdown) *Verdic
 		Priority:   "overall",
 	}
 
-	// Check for HTTP 405 Method Not Allowed - highest priority
-	if result.MethodNotAllowed {
-		verdict.Verdict = "dangerous"
-		verdict.Priority = "http_method"
-		verdict.Reason = "Site blocks standard HTTP methods and exhibits suspicious behavior"
-		verdict.Confidence = 0.9
-		return verdict
-	}
-
 	// Check for critical issues that override scoring
+	// ScamGuard AI verdict has highest priority - trust AI for legitimate site detection
 	if result.ScamGuard != nil {
 		// ScamGuard malicious verdict takes highest priority
 		if strings.ToLower(result.ScamGuard.Verdict) == "malicious" {
@@ -210,11 +199,36 @@ func determineVerdict(result *checker.CheckResult, score ScoreBreakdown) *Verdic
 			return verdict
 		}
 
+		// ScamGuard safe verdict has high priority - trust AI assessment for legitimate sites
+		if strings.ToLower(result.ScamGuard.Verdict) == "safe" {
+			// Still check for critical network issues that might indicate the site is down
+			if result.ErrorType == "DNS_FAILURE" || result.ErrorType == "INVALID_URL" {
+				verdict.Verdict = "dangerous"
+				verdict.Priority = "dns"
+				verdict.Reason = "Domain does not exist or DNS resolution failed"
+				verdict.Confidence = 0.95
+				return verdict
+			}
+
+			// For valid sites marked safe by ScamGuard, trust the AI assessment
+			verdict.Verdict = "safe"
+			verdict.Priority = "scamguard"
+			verdict.Reason = "Verified as legitimate by AI analysis"
+			verdict.Confidence = result.ScamGuard.Confidence
+			if verdict.Confidence == 0 {
+				verdict.Confidence = 0.85
+			}
+			return verdict
+		}
+
 		// Use confidence from ScamGuard if available
 		if result.ScamGuard.Confidence > 0 {
 			verdict.Confidence = result.ScamGuard.Confidence
 		}
 	}
+
+	// HTTP 405 is not a security issue - many legitimate sites block HEAD requests
+	// We'll consider it in the scoring but not as a verdict determiner
 
 	// Check for critical errors
 	if result.ErrorType == "DNS_FAILURE" {

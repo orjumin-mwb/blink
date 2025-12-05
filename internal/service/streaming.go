@@ -99,7 +99,7 @@ func (s *StreamingService) CheckURLStreaming(ctx context.Context, url string, op
 			}
 		}()
 
-		// Run the checker (this will close checkerEvents when done)
+		// Run the basic checker for overview (DNS, TCP, TLS, response)
 		s.service.checker.CheckURLStreaming(ctx, url, finalOpts, checkerEvents)
 
 		// Wait for event forwarding to complete

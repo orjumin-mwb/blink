@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ type ResponseBuilder struct {
 	// Additional data
 	securityIssues   *SecurityCheckResult
 	privacyData      *PrivacyAnalysis
+	paymentAnalysis  *PaymentAnalysis
 	pageInfo         *PageInfo
 	networkData      *NetworkData
 
@@ -74,6 +76,11 @@ func (rb *ResponseBuilder) SetSecurityTxt(hasIt bool) {
 	rb.hasSecurityTxt = hasIt
 }
 
+// SetPaymentAnalysis sets payment detection analysis data
+func (rb *ResponseBuilder) SetPaymentAnalysis(payment *PaymentAnalysis) {
+	rb.paymentAnalysis = payment
+}
+
 // GetAggregator returns the detection aggregator for adding detections
 func (rb *ResponseBuilder) GetAggregator() *DetectionAggregator {
 	return rb.aggregator
@@ -113,6 +120,14 @@ func (rb *ResponseBuilder) Build() *DeepCheckResult {
 		result.Privacy = rb.privacyData
 	} else {
 		result.Privacy = rb.derivePrivacyFromDetections()
+	}
+
+	// Add payment analysis
+	if rb.paymentAnalysis != nil {
+		log.Printf("[DEBUG] Including payment analysis in result with %d providers", len(rb.paymentAnalysis.Providers))
+		result.Payment = rb.paymentAnalysis
+	} else {
+		log.Printf("[DEBUG] No payment analysis to include (rb.paymentAnalysis is nil)")
 	}
 
 	// Add page info

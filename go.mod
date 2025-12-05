@@ -5,6 +5,8 @@ go 1.25
 require golang.org/x/net v0.47.0
 
 require (
+	github.com/PuerkitoBio/goquery v1.11.0 // indirect
+	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/buckket/go-blurhash v1.1.0 // indirect
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d // indirect
 	github.com/chromedp/chromedp v0.14.2 // indirect

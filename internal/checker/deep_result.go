@@ -13,6 +13,7 @@ type DeepCheckResult struct {
 	Technologies *TechnologyAnalysis  `json:"technologies"`
 	Security     *SecurityAnalysis    `json:"security"`
 	Privacy      *PrivacyAnalysis     `json:"privacy"`
+	Payment      *PaymentAnalysis     `json:"payment,omitempty"`
 	PageInfo     *PageInfo            `json:"page_info"`
 	Network      *NetworkData         `json:"network,omitempty"`
 }
@@ -243,4 +244,26 @@ type ImageAnalysis struct {
 	WebPUsage          int            `json:"webp_usage"`
 	Formats            map[string]int `json:"formats"`
 	AccessibilityScore int            `json:"accessibility_score"`
+}
+
+// PaymentAnalysis contains detected payment methods and providers
+type PaymentAnalysis struct {
+	Providers      []DetectedProvider   `json:"providers,omitempty"`
+	Methods        []string             `json:"methods,omitempty"`
+	CheckoutFlow   *CheckoutFlow        `json:"checkout_flow,omitempty"`
+	Compliance     *ComplianceAnalysis  `json:"compliance,omitempty"`
+	RiskAssessment *PaymentRiskAnalysis `json:"risk_assessment,omitempty"`
+	Summary        *PaymentSummary      `json:"summary,omitempty"`
+}
+
+// PaymentSummary provides high-level payment detection summary
+type PaymentSummary struct {
+	TotalProviders   int      `json:"total_providers"`
+	PrimaryProvider  string   `json:"primary_provider,omitempty"`
+	HasCreditCard    bool     `json:"has_credit_card"`
+	HasWallets       bool     `json:"has_wallets"`
+	HasBNPL          bool     `json:"has_bnpl"`
+	HasCrypto        bool     `json:"has_crypto"`
+	IsSecure         bool     `json:"is_secure"`
+	ConfidenceLevel  string   `json:"confidence_level"`
 }

@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IMPORTANT: Documentation Policy
+
+**⚠️ DO NOT CREATE MARKDOWN DOCUMENTATION FILES UNLESS EXPLICITLY REQUESTED**
+
+- Do NOT create .md files in docs/ or elsewhere after completing implementations
+- Do NOT create summary documents, status documents, or final reports
+- Focus on code implementation only
+- Only create documentation when the user explicitly asks for it
+
 ## Project Overview
 
 Blink is a Go-based link checker API service that validates URLs, follows redirects, checks TLS certificates, and provides detailed timing information. The service exposes an HTTP API for checking link health.

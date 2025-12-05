@@ -74,6 +74,12 @@ func ParseVerdictFromText(text string, apiVerdict string) *EnhancedVerdict {
 		"established domain registration",
 		"reputable company",
 		"well-known service",
+		"the site appears legitimate",
+		"appears legitimate",
+		"this is the official website",
+		"no indication of fraud",
+		"established and highly reputable",
+		"safe and globally established",
 	})
 
 	// Check for specific phrases that indicate danger

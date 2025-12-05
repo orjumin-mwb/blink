@@ -405,6 +405,14 @@
                                 <div id="technologies-count" class="text-xs text-gray-500 mt-2 font-body"></div>
                             </div>
 
+                            <!-- Payment Methods Section -->
+                            <div id="section-payment" class="hidden">
+                                <h3 class="text-lg font-bold mb-3 font-heading">Payment Methods</h3>
+                                <div id="payment-summary" class="mb-4"></div>
+                                <div id="payment-providers" class="space-y-3"></div>
+                                <div id="payment-count" class="text-xs text-gray-500 mt-2 font-body"></div>
+                            </div>
+
                             <!-- Security Report Section -->
                             <div id="section-security" class="hidden">
                                 <h3 class="text-lg font-bold mb-3 font-heading">Security Report</h3>
@@ -1581,6 +1589,7 @@
             requests: [],
             trackers: [],
             technologies: [],
+            payment: null,
             securityIssues: { critical: [], high: [], medium: [], low: [] }
         };
 
@@ -1726,12 +1735,14 @@
                 clearTimeout(deepCheckIdleTimer);
             }
             deepCheckIdleTimer = setTimeout(() => {
-                if (!isDeepCheckUIFinalized && isDeepCheckRunning && deepCheckProgress >= 70) {
+                // Only finalize if we've received security score (which comes before payment)
+                // This prevents early finalization during the security check phase
+                if (!isDeepCheckUIFinalized && isDeepCheckRunning && deepCheckGotSecurityScore) {
                     console.log('Deep check idle finalize fired');
                     finalizeDeepCheckUI('Analysis complete');
                     finishDeepCheck(true);
                 }
-            }, 4000);
+            }, 5000); // Increased timeout to 5 seconds
 
             // Handle different event types
             if (data.stage === 'analysis_progress' && data.data) {
@@ -1742,10 +1753,11 @@
                 if (step) {
                     document.getElementById('deep-check-status').textContent = step;
                 }
+                // Don't finalize at 100% - wait for explicit completion event
+                // This ensures payment events aren't blocked
                 if (progress >= 100) {
-                    finalizeDeepCheckUI('Analysis complete');
-                    finishDeepCheck(true);
-                    return;
+                    // Just update the UI but don't finalize
+                    document.getElementById('deep-check-status').textContent = 'Finalizing analysis...';
                 }
 
                 // Update stage badges based on progress
@@ -1852,6 +1864,14 @@
                 deepCheckData.technologies.push(data.data);
                 renderTechnologies();
             }
+            else if (data.stage === 'payment' && data.data) {
+                console.log('[DEBUG] Payment event received:', data.stage);
+                console.log('[DEBUG] Payment data:', JSON.stringify(data.data, null, 2));
+                console.log('[DEBUG] Providers:', data.data.providers);
+                deepCheckData.payment = data.data;
+                console.log('[DEBUG] Calling renderPaymentMethods()');
+                renderPaymentMethods();
+            }
             else if (data.stage === 'security_issue_found' && data.data && data.data.security_issue) {
                 const issue = data.data.security_issue;
                 const severity = (issue.severity || 'low').toLowerCase();
@@ -1862,8 +1882,7 @@
             }
             else if (data.stage === 'security_score' && data.data) {
                 deepCheckGotSecurityScore = true;
-                finalizeDeepCheckUI('Analysis complete');
-                finishDeepCheck(true);
+                // Don't finalize here - more events coming (like payment)
                 renderSecurityScore(data.data);
             }
             else if (data.stage === 'analysis_complete') {
@@ -2039,6 +2058,121 @@
             });
 
             section.classList.remove('hidden');
+        }
+
+        function renderPaymentMethods() {
+            console.log('[DEBUG] renderPaymentMethods() called');
+            console.log('[DEBUG] deepCheckData.payment:', deepCheckData.payment);
+
+            if (!deepCheckData.payment || !deepCheckData.payment.providers || deepCheckData.payment.providers.length === 0) {
+                console.log('[DEBUG] Early return - no payment data or providers');
+                console.log('[DEBUG] payment:', deepCheckData.payment);
+                console.log('[DEBUG] providers:', deepCheckData.payment ? deepCheckData.payment.providers : 'N/A');
+                return;
+            }
+
+            console.log('[DEBUG] Payment data exists, rendering...');
+            const container = document.getElementById('payment-providers');
+            const summaryContainer = document.getElementById('payment-summary');
+            const countEl = document.getElementById('payment-count');
+            const sectionEl = document.getElementById('section-payment');
+            console.log('[DEBUG] Elements found:', {container, summaryContainer, countEl, sectionEl});
+
+            const payment = deepCheckData.payment;
+            const providers = payment.providers || [];
+            const methods = payment.methods || [];
+            const summary = payment.summary || {};
+
+            // Render summary card
+            const confidenceColorMap = {
+                'very_high': 'bg-green-100 text-green-800',
+                'high': 'bg-blue-100 text-blue-800',
+                'medium': 'bg-yellow-100 text-yellow-800',
+                'low': 'bg-gray-100 text-gray-600'
+            };
+            const confidenceColor = confidenceColorMap[summary.confidence_level] || 'bg-gray-100 text-gray-600';
+
+            summaryContainer.innerHTML = `
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-sm font-semibold font-body">Payment Detection Summary</div>
+                        <span class="px-2 py-1 text-xs rounded-full ${confidenceColor}">
+                            ${summary.confidence_level || 'unknown'} confidence
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        ${summary.has_credit_card ? '<div class="flex items-center"><span class="mr-1">💳</span>Credit Card</div>' : ''}
+                        ${summary.has_wallets ? '<div class="flex items-center"><span class="mr-1">📱</span>Digital Wallets</div>' : ''}
+                        ${summary.has_bnpl ? '<div class="flex items-center"><span class="mr-1">💰</span>Buy Now Pay Later</div>' : ''}
+                        ${summary.has_crypto ? '<div class="flex items-center"><span class="mr-1">₿</span>Cryptocurrency</div>' : ''}
+                    </div>
+                    ${summary.is_secure ?
+                        '<div class="mt-2 text-xs text-green-600 flex items-center"><span class="mr-1">🔒</span>Secure transmission detected</div>' :
+                        '<div class="mt-2 text-xs text-red-600 flex items-center"><span class="mr-1">⚠️</span>Security concerns detected</div>'
+                    }
+                </div>
+            `;
+
+            // Render providers
+            container.innerHTML = providers.map(provider => {
+                const categoryEmojiMap = {
+                    'gateway': '💳',
+                    'wallet': '📱',
+                    'bnpl': '💰',
+                    'crypto': '₿',
+                    'processor': '💳'
+                };
+                const categoryEmoji = categoryEmojiMap[provider.category] || '💰';
+
+                const confidenceClassMap = {
+                    'very_high': 'bg-green-50 border-green-200',
+                    'high': 'bg-blue-50 border-blue-200',
+                    'medium': 'bg-yellow-50 border-yellow-200',
+                    'low': 'bg-gray-50 border-gray-200'
+                };
+                const confidenceClass = confidenceClassMap[provider.confidence] || 'bg-gray-50 border-gray-200';
+
+                const evidenceTypes = [];
+                if (provider.evidence && provider.evidence.html_elements && provider.evidence.html_elements.length > 0) {
+                    evidenceTypes.push('HTML Elements');
+                }
+                if (provider.evidence && provider.evidence.js_objects && provider.evidence.js_objects.length > 0) {
+                    evidenceTypes.push('JavaScript SDK');
+                }
+                if (provider.evidence && provider.evidence.api_endpoints && provider.evidence.api_endpoints.length > 0) {
+                    evidenceTypes.push('API Calls');
+                }
+                if (provider.evidence && provider.evidence.iframe_checkout) {
+                    evidenceTypes.push('Embedded Checkout');
+                }
+
+                return `
+                    <div class="border ${confidenceClass} rounded-lg p-3">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">${categoryEmoji}</span>
+                                <div>
+                                    <div class="font-semibold text-gray-800 font-body">${provider.name}</div>
+                                    <div class="text-xs text-gray-500">${provider.category} • ${provider.checkout_type || 'unknown type'}</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full ${confidenceColor}">
+                                ${Math.round(provider.confidence_score)}%
+                            </span>
+                        </div>
+                        ${evidenceTypes.length > 0 ? `
+                            <div class="mt-2 text-xs text-gray-600">
+                                <span class="font-semibold">Detected via:</span> ${evidenceTypes.join(', ')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            countEl.textContent = `${providers.length} payment provider${providers.length !== 1 ? 's' : ''} detected • ${methods.length} payment method${methods.length !== 1 ? 's' : ''} available`;
+            console.log('[DEBUG] About to show section, removing hidden class');
+            sectionEl.classList.remove('hidden');
+            console.log('[DEBUG] Section shown successfully, classList:', sectionEl.classList);
         }
 
         // On page load, restore state from URL query parameters
